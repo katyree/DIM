@@ -292,11 +292,10 @@ export default function FashionDrawer({
           exampleItem.sockets,
           SocketCategoryHashes.ArmorCosmetics,
         );
-        const shaderSocket = cosmeticSockets.find(
-          (s) =>
-            defs
-              .SocketType.get(s.socketDefinition.socketTypeHash)
-              ?.plugWhitelist.some((pw) => pw.categoryHash === PlugCategoryHashes.Shader),
+        const shaderSocket = cosmeticSockets.find((s) =>
+          defs.SocketType.get(s.socketDefinition.socketTypeHash)?.plugWhitelist.some(
+            (pw) => pw.categoryHash === PlugCategoryHashes.Shader,
+          ),
         );
 
         if (shaderSocket) {
@@ -345,8 +344,7 @@ export default function FashionDrawer({
           onClick={handlePickShaderForAll}
           title={t('FashionDrawer.ChooseShader')}
         >
-          {isPhonePortrait ? t('FashionDrawer.ChooseShader') : t('FashionDrawer.ChooseShader')}{' '}
-          <AppIcon icon={addIcon} />
+          {t('FashionDrawer.ChooseShader')} <AppIcon icon={addIcon} />
         </button>
       </div>
       <div>
