@@ -13,7 +13,7 @@ import { ArmorBucketHashes } from 'app/loadout-builder/types';
 import { Loadout, ResolvedLoadoutItem } from 'app/loadout/loadout-types';
 import { useD2Definitions } from 'app/manifest/selectors';
 import { DEFAULT_ORNAMENTS, DEFAULT_SHADER } from 'app/search/d2-known-values';
-import { AppIcon, clearIcon, rightArrowIcon } from 'app/shell/icons';
+import { AppIcon, addIcon, clearIcon, rightArrowIcon } from 'app/shell/icons';
 import { useIsPhonePortrait } from 'app/shell/selectors';
 import { filterMap, isEmpty } from 'app/utils/collections';
 import { getSocketsByCategoryHash, plugFitsIntoSocket } from 'app/utils/socket-utils';
@@ -55,6 +55,7 @@ export default function FashionDrawer({
   const unlockedPlugs = useSelector(unlockedPlugSetItemsSelector(storeId));
   const isPhonePortrait = useIsPhonePortrait();
   const [pickPlug, setPickPlug] = useState<PickPlugState>();
+  const [pickingShaderForAll, setPickingShaderForAll] = useState(false);
   const allItems = useSelector(allItemsSelector);
   const armor = items.filter(
     (li) => li.loadoutItem.equip && ArmorBucketHashes.includes(li.item.bucket.hash),
@@ -136,18 +137,32 @@ export default function FashionDrawer({
     socket: DimSocket;
     plugHash: number;
   }) => {
-    setModsByBucket((modsByBucket) => {
-      // Clear out existing selections for this socket.
-      const existingMods = (modsByBucket[item.bucket.hash] ?? []).filter(
-        (mod) => !plugFitsIntoSocket(socket, mod),
-      );
+    if (pickingShaderForAll) {
+      setModsByBucket((modsByBucket) => {
+        const newModsByBucket = { ...modsByBucket };
+        for (const bucketHash of ArmorBucketHashes) {
+          const mods = newModsByBucket[bucketHash] ?? [];
+          const modsWithoutShader = mods.filter((h) => !isShader(h));
+          newModsByBucket[bucketHash] = [...modsWithoutShader, plugHash];
+        }
+        return newModsByBucket;
+      });
+      setPickingShaderForAll(false);
+      setPickPlug(undefined);
+    } else {
+      setModsByBucket((modsByBucket) => {
+        // Clear out existing selections for this socket.
+        const existingMods = (modsByBucket[item.bucket.hash] ?? []).filter(
+          (mod) => !plugFitsIntoSocket(socket, mod),
+        );
 
-      return {
-        ...modsByBucket,
-        // Add in the new mod
-        [item.bucket.hash]: [...existingMods, plugHash],
-      };
-    });
+        return {
+          ...modsByBucket,
+          // Add in the new mod
+          [item.bucket.hash]: [...existingMods, plugHash],
+        };
+      });
+    }
   };
 
   const handleUseEquipped = () => {
@@ -269,6 +284,30 @@ export default function FashionDrawer({
     );
   };
 
+  const handlePickShaderForAll = () => {
+    for (const bucketHash of ArmorBucketHashes) {
+      const exampleItem = exampleItemsByBucketHash[bucketHash];
+      if (exampleItem) {
+        const cosmeticSockets = getSocketsByCategoryHash(
+          exampleItem.sockets,
+          SocketCategoryHashes.ArmorCosmetics,
+        );
+        const shaderSocket = cosmeticSockets.find(
+          (s) =>
+            defs
+              .SocketType.get(s.socketDefinition.socketTypeHash)
+              ?.plugWhitelist.some((pw) => pw.categoryHash === PlugCategoryHashes.Shader),
+        );
+
+        if (shaderSocket) {
+          setPickPlug({ item: exampleItem, socket: shaderSocket });
+          setPickingShaderForAll(true);
+          return;
+        }
+      }
+    }
+  };
+
   const handleClearType = (shaders: boolean) => {
     setModsByBucket(
       produce((modsByBucket) => {
@@ -297,6 +336,17 @@ export default function FashionDrawer({
       <div>
         <button type="button" className="dim-button" onClick={handleUseEquipped}>
           {t('FashionDrawer.UseEquipped')}
+        </button>
+      </div>
+      <div>
+        <button
+          type="button"
+          className="dim-button"
+          onClick={handlePickShaderForAll}
+          title={t('FashionDrawer.ChooseShader')}
+        >
+          {isPhonePortrait ? t('FashionDrawer.ChooseShader') : t('FashionDrawer.ChooseShader')}{' '}
+          <AppIcon icon={addIcon} />
         </button>
       </div>
       <div>
@@ -394,7 +444,10 @@ export default function FashionDrawer({
           item={pickPlug.item}
           allowInsertPlug={false}
           socket={pickPlug.socket}
-          onClose={() => setPickPlug(undefined)}
+          onClose={() => {
+            setPickPlug(undefined);
+            setPickingShaderForAll(false);
+          }}
           onPlugSelected={handlePlugSelected}
         />
       )}

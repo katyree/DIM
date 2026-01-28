@@ -187,6 +187,7 @@
     "Accept": "Save fashion",
     "CannotFitOrnament": "This item does not have an ornament socket or you have no ornaments for it.",
     "CannotFitShader": "This item cannot fit a shader",
+    "ChooseShader": "Choose Shader",
     "ClearOrnaments": "Clear Ornaments",
     "ClearOrnamentsTitle": "Reset all ornaments to \"no preference\"",
     "ClearShaders": "Clear Shaders",
