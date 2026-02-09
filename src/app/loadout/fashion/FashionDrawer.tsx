@@ -6,15 +6,19 @@ import Sheet from 'app/dim-ui/Sheet';
 import { t } from 'app/i18next-t';
 import ConnectedInventoryItem from 'app/inventory/ConnectedInventoryItem';
 import { DefItemIcon } from 'app/inventory/ItemIcon';
+import { insertPlug } from 'app/inventory/advanced-write-actions';
 import { DimItem, DimSocket, PluggableInventoryItemDefinition } from 'app/inventory/item-types';
 import { allItemsSelector, unlockedPlugSetItemsSelector } from 'app/inventory/selectors';
 import SocketDetails from 'app/item-popup/SocketDetails';
 import { ArmorBucketHashes } from 'app/loadout-builder/types';
 import { Loadout, ResolvedLoadoutItem } from 'app/loadout/loadout-types';
 import { useD2Definitions } from 'app/manifest/selectors';
+import { showNotification } from 'app/notifications/notifications';
 import { DEFAULT_ORNAMENTS, DEFAULT_SHADER } from 'app/search/d2-known-values';
+import { loadingTracker } from 'app/shell/LoadingTracker';
 import { AppIcon, addIcon, clearIcon, rightArrowIcon } from 'app/shell/icons';
 import { useIsPhonePortrait } from 'app/shell/selectors';
+import { useThunkDispatch } from 'app/store/thunk-dispatch';
 import { filterMap, isEmpty } from 'app/utils/collections';
 import { getSocketsByCategoryHash, plugFitsIntoSocket } from 'app/utils/socket-utils';
 import { HashLookup } from 'app/utils/util-types';
@@ -51,11 +55,13 @@ export default function FashionDrawer({
   onModsByBucketUpdated: (modsByBucket: LoadoutParameters['modsByBucket']) => void;
   onClose: () => void;
 }) {
+  const dispatch = useThunkDispatch();
   const defs = useD2Definitions()!;
   const unlockedPlugs = useSelector(unlockedPlugSetItemsSelector(storeId));
   const isPhonePortrait = useIsPhonePortrait();
   const [pickPlug, setPickPlug] = useState<PickPlugState>();
   const [pickingShaderForAll, setPickingShaderForAll] = useState(false);
+  const [pickingBulkShader, setPickingBulkShader] = useState(false);
   const allItems = useSelector(allItemsSelector);
   const armor = items.filter(
     (li) => li.loadoutItem.equip && ArmorBucketHashes.includes(li.item.bucket.hash),
@@ -137,7 +143,59 @@ export default function FashionDrawer({
     socket: DimSocket;
     plugHash: number;
   }) => {
-    if (pickingShaderForAll) {
+    if (pickingBulkShader) {
+      const applyBulkShader = async () => {
+        const plugDef = defs.InventoryItem.get(plugHash);
+        const confirm = window.confirm(
+          `Apply ${plugDef.displayProperties.name} to all legendary/exotic armor and legendary weapons? This may take a while and cost Glimmer.`,
+        );
+        if (!confirm) {
+          return;
+        }
+
+        const targets = allItems.filter(
+          (i) =>
+            (i.bucket.inArmor || (i.bucket.inWeapons && i.rarity === 'Legendary')) &&
+            i.sockets &&
+            // Don't apply if it's already there
+            !i.sockets.allSockets.some((s) => s.plugged?.plugDef.hash === plugHash),
+        );
+
+        let successes = 0;
+        const failures: string[] = [];
+
+        const promise = (async () => {
+          for (const targetItem of targets) {
+            // Find a socket that accepts this plug
+            const targetSocket = targetItem.sockets!.allSockets.find((s) =>
+              plugFitsIntoSocket(s, plugHash),
+            );
+            if (targetSocket) {
+              try {
+                await dispatch(insertPlug(targetItem, targetSocket, plugHash));
+                successes++;
+              } catch (e) {
+                failures.push(targetItem.name);
+                console.error(`Failed to apply shader to ${targetItem.name}`, e);
+              }
+            }
+          }
+        })();
+
+        loadingTracker.addPromise(promise);
+        await promise;
+
+        showNotification({
+          type: failures.length ? 'warning' : 'success',
+          title: 'Bulk Shader Application',
+          body: `Applied to ${successes} items.${failures.length ? ` Failed on: ${failures.join(', ')}` : ''}`,
+        });
+      };
+
+      applyBulkShader();
+      setPickingBulkShader(false);
+      setPickPlug(undefined);
+    } else if (pickingShaderForAll) {
       setModsByBucket((modsByBucket) => {
         const newModsByBucket = { ...modsByBucket };
         for (const bucketHash of ArmorBucketHashes) {
@@ -307,6 +365,30 @@ export default function FashionDrawer({
     }
   };
 
+  const handleBulkApplyShader = () => {
+    // Pick a shader using an armor piece as a template (since they all use shaders)
+    for (const bucketHash of ArmorBucketHashes) {
+      const exampleItem = exampleItemsByBucketHash[bucketHash];
+      if (exampleItem) {
+        const cosmeticSockets = getSocketsByCategoryHash(
+          exampleItem.sockets,
+          SocketCategoryHashes.ArmorCosmetics,
+        );
+        const shaderSocket = cosmeticSockets.find((s) =>
+          defs.SocketType.get(s.socketDefinition.socketTypeHash)?.plugWhitelist.some(
+            (pw) => pw.categoryHash === PlugCategoryHashes.Shader,
+          ),
+        );
+
+        if (shaderSocket) {
+          setPickPlug({ item: exampleItem, socket: shaderSocket });
+          setPickingBulkShader(true);
+          return;
+        }
+      }
+    }
+  };
+
   const handleClearType = (shaders: boolean) => {
     setModsByBucket(
       produce((modsByBucket) => {
@@ -345,6 +427,16 @@ export default function FashionDrawer({
           title={t('FashionDrawer.ChooseShader')}
         >
           {t('FashionDrawer.ChooseShader')} <AppIcon icon={addIcon} />
+        </button>
+      </div>
+      <div>
+        <button
+          type="button"
+          className="dim-button"
+          onClick={handleBulkApplyShader}
+          title="Apply a shader to all legendary/exotic armor and legendary weapons"
+        >
+          Bulk Apply <AppIcon icon={addIcon} />
         </button>
       </div>
       <div>
