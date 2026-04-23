@@ -5,7 +5,8 @@
     "Error": "Error changing mods or perks",
     "ErrorMessage": "We couldn't equip {{plug}} into {{item}}.\n\n{{error}}",
     "FailedToken": "Couldn't get permission to change item",
-    "IrreversiblePlugging": "You don't own {{plug}}, so we won't overwrite it."
+    "IrreversiblePlugging": "You don't own {{plug}}, so we won't overwrite it.",
+    "NotSupported": "We cannot change this type of mod or perk"
   },
   "Accounts": {
     "Choose": "Profiles for {{bungieName}}",
@@ -1191,6 +1192,24 @@
     "Query": "Search",
     "Title": "Search History",
     "UsageCount": "# Used"
+  },
+  "SetSockets": {
+    "Action": "Set Sockets",
+    "Apply": "Apply to Selected Items",
+    "ArmorMods": "{{count}}x Armor Mod",
+    "Cancel": "Cancel",
+    "Choose": "Choose Sockets to set",
+    "DiscountedMods": "{{count}}x Discounted Mod",
+    "Done": "Applied Sockets",
+    "NoCompatibleBody": "That socket choice would not change any of the selected items.",
+    "NoCompatibleTitle": "No compatible items",
+    "NoSockets": "No Sockets to set",
+    "Ok": "Ok",
+    "Ornaments": "{{count}}x Ornament",
+    "Others": "{{count}}x Ghost Projection",
+    "Running": "Applying Sockets",
+    "Shaders": "{{count}}x Shader",
+    "WeaponMods": "{{count}}x Weapon Mod"
   },
   "Settings": {
     "Appearance": "Appearance",

@@ -123,6 +123,7 @@ export default function SocketDetails({
   allowInsertPlug,
   onClose,
   onPlugSelected,
+  actionLabel,
 }: {
   item: DimItem;
   socket: DimSocket;
@@ -130,6 +131,7 @@ export default function SocketDetails({
   allowInsertPlug: boolean;
   onClose: () => void;
   onPlugSelected?: (value: { item: DimItem; socket: DimSocket; plugHash: number }) => void;
+  actionLabel?: string;
 }) {
   const defs = useD2Definitions()!;
   const plugged = socket.plugged?.plugDef;
@@ -306,6 +308,7 @@ export default function SocketDetails({
         allowInsertPlug={allowInsertPlug}
         onPlugSelected={onPlugSelected}
         closeMenu={onClose}
+        actionLabel={actionLabel}
       />
     ));
 

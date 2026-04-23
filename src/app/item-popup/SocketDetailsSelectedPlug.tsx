@@ -110,6 +110,7 @@ export default function SocketDetailsSelectedPlug({
   allowInsertPlug,
   closeMenu,
   onPlugSelected,
+  actionLabel,
 }: {
   plug: PluggableInventoryItemDefinition;
   socket: DimSocket;
@@ -120,6 +121,7 @@ export default function SocketDetailsSelectedPlug({
   closeMenu: () => void;
   /** If this is set, instead of offering to slot the mod, we just notify above */
   onPlugSelected?: (value: { item: DimItem; socket: DimSocket; plugHash: number }) => void;
+  actionLabel?: string;
 }) {
   const dispatch = useThunkDispatch();
   const defs = useD2Definitions()!;
@@ -180,9 +182,11 @@ export default function SocketDetailsSelectedPlug({
     canInsertPlug(socket, plug.hash, destiny2CoreSettings, defs);
 
   const kind = uiCategorizeSocket(defs, socket.socketDefinition);
-  const insertName = canDoAWA
-    ? t(`Sockets.Insert.${kind}`, { metadata: { keys: 'sockets' } })
-    : t(`Sockets.Select.${kind}`, { metadata: { keys: 'sockets' } });
+  const insertName =
+    actionLabel ??
+    (canDoAWA
+      ? t(`Sockets.Insert.${kind}`, { metadata: { keys: 'sockets' } })
+      : t(`Sockets.Select.${kind}`, { metadata: { keys: 'sockets' } }));
 
   const [insertInProgress, setInsertInProgress] = useState(false);
 

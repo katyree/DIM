@@ -41,11 +41,11 @@ function setupMenu({ state, options }: ModifierArguments<Options>) {
     return;
   }
   if (typeof sidecarElement === 'string') {
-    sidecarElement = state.elements.popper.querySelector(sidecarElement)!;
-
-    if (!sidecarElement) {
+    const found = state.elements.popper.querySelector<HTMLElement>(sidecarElement);
+    if (!found) {
       return;
     }
+    sidecarElement = found;
   }
 
   // @ts-expect-error ts(2339)
