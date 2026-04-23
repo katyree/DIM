@@ -128,7 +128,7 @@ export function collectSocketsToSet(
 
   const socketKinds: SetSocketKindGroup[] = [];
   for (const groupKey in socketsByKind) {
-    const { kind, entries } = socketsByKind[groupKey]!;
+    const { kind, entries } = socketsByKind[groupKey];
     const affectedItems = uniqBy(entries, (entry) => entry.item.id);
     const numApplicableItems = affectedItems.length;
 

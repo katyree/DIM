@@ -226,7 +226,13 @@ export default function SetSockets() {
 
   let contents, footer;
   if (state.tag === 'selecting') {
-    contents = <SetSocketsChoose query={query} onSelectKind={setSocketKindInMenu} />;
+    contents = (
+      <SetSocketsChoose
+        query={query}
+        selectedGroupKey={socketKindInMenu?.groupKey}
+        onSelectKind={setSocketKindInMenu}
+      />
+    );
   } else {
     contents = (
       <SetSocketsProcess
@@ -333,9 +339,11 @@ function SetSocketsProcess({
 
 function SetSocketsChoose({
   query,
+  selectedGroupKey,
   onSelectKind,
 }: {
   query: string;
+  selectedGroupKey: string | undefined;
   onSelectKind: (kind: SetSocketKindGroup | undefined) => void;
 }) {
   const defs = useD2Definitions()!;
@@ -371,6 +379,7 @@ function SetSocketsChoose({
               numOthers,
               numApplicableSockets,
             }) => {
+              const selected = selectedGroupKey === groupKey;
               const itemCats = [
                 { icon: handCannonIcon, num: numWeapons },
                 { icon: chestArmorItem, num: numArmor },
@@ -384,7 +393,9 @@ function SetSocketsChoose({
               return (
                 <div
                   key={groupKey}
-                  className={styles.socketKindButton}
+                  className={clsx(styles.socketKindButton, {
+                    [styles.selectedButton]: selected,
+                  })}
                   onClick={() =>
                     onSelectKind(socketKinds.find((socketKind) => socketKind.groupKey === groupKey))
                   }
@@ -395,7 +406,13 @@ function SetSocketsChoose({
                     <DefItemIcon itemDef={representativePlug} />
                   </div>
                   <div className={styles.buttonInfo}>
-                    <div className={styles.buttonTitle}>{label}</div>
+                    <div
+                      className={clsx(styles.buttonTitle, {
+                        [styles.selectedTitle]: selected,
+                      })}
+                    >
+                      {label}
+                    </div>
                   </div>
                   <div>
                     {itemCats.map(
