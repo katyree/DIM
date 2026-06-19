@@ -19,6 +19,7 @@ import { useIsPhonePortrait } from 'app/shell/selectors';
 import { useThunkDispatch } from 'app/store/thunk-dispatch';
 import { stripSockets } from 'app/strip-sockets/strip-sockets-actions';
 import { compact } from 'app/utils/collections';
+import { ItemCategoryHashes } from 'data/d2/generated-enums';
 import { memo } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
@@ -73,7 +74,9 @@ export default memo(function ItemActionsDropdown({
     ),
   );
   const canSetSockets = filteredItems.some((i) =>
-    i.sockets?.allSockets.some((s) => s.plugged?.plugDef.displayProperties.name),
+    i.sockets?.allSockets.some((s) =>
+      s.plugged?.plugDef.itemCategoryHashes?.includes(ItemCategoryHashes.Shaders),
+    ),
   );
 
   const bulkTag = loadingTracker.trackPromise(async (selectedTag: TagCommand) => {

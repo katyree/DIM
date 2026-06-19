@@ -2,15 +2,13 @@ import { D2ManifestDefinitions } from 'app/destiny2/d2-definitions';
 import { t } from 'app/i18next-t';
 import { canInsertPlug, insertPlug } from 'app/inventory/advanced-write-actions';
 import { DimItem, DimSocket } from 'app/inventory/item-types';
-import { isReducedModCostVariant } from 'app/loadout/mod-utils';
-import { DEFAULT_ORNAMENTS } from 'app/search/d2-known-values';
 import { ThunkResult } from 'app/store/types';
 import { CancelToken } from 'app/utils/cancel';
 import { count, uniqBy } from 'app/utils/collections';
 import { errorMessage } from 'app/utils/errors';
 import { plugFitsIntoSocket } from 'app/utils/socket-utils';
 import { Destiny2CoreSettings } from 'bungie-api-ts/core';
-import { ItemCategoryHashes, PlugCategoryHashes } from 'data/d2/generated-enums';
+import { ItemCategoryHashes } from 'data/d2/generated-enums';
 import { d2ManifestSelector, destiny2CoreSettingsSelector } from '../manifest/selectors';
 
 export interface SetSocketAction {
@@ -33,28 +31,9 @@ export interface SetSocketKindGroup {
 
 function identifySocket(socket: DimSocket) {
   const plugDef = socket.plugged?.plugDef;
-  if (!plugDef) {
-    return;
-  }
 
-  if (plugDef.itemCategoryHashes?.includes(ItemCategoryHashes.Shaders)) {
+  if (plugDef?.itemCategoryHashes?.includes(ItemCategoryHashes.Shaders)) {
     return 'shaders';
-  } else if (DEFAULT_ORNAMENTS.includes(socket.emptyPlugItemHash!)) {
-    return 'ornaments';
-  } else if (plugDef.itemCategoryHashes?.includes(ItemCategoryHashes.WeaponModsDamage)) {
-    return 'weaponmods';
-  } else if (plugDef.itemCategoryHashes?.includes(ItemCategoryHashes.ArmorMods)) {
-    if (isReducedModCostVariant(plugDef.hash)) {
-      return 'discountedmods';
-    }
-    return 'armormods';
-  } else if (
-    plugDef.plug.plugCategoryHash === PlugCategoryHashes.WeaponTieringKillVfx ||
-    plugDef.plug.plugCategoryHash === PlugCategoryHashes.V900weaponModConfetti
-  ) {
-    return 'combatflair';
-  } else if (plugDef.plug.plugCategoryHash === PlugCategoryHashes.Hologram) {
-    return 'others';
   }
 }
 

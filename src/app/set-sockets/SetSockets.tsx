@@ -33,11 +33,6 @@ import { setSocketsQuery$ } from './set-sockets-actions';
 
 const i18nKeys: NodeJS.Dict<I18nKey> = {
   shaders: tl('SetSockets.Shaders'),
-  ornaments: tl('SetSockets.Ornaments'),
-  weaponmods: tl('SetSockets.WeaponMods'),
-  armormods: tl('SetSockets.ArmorMods'),
-  discountedmods: tl('SetSockets.DiscountedMods'),
-  others: tl('SetSockets.Others'),
 };
 
 type SocketState = string | 'ok' | 'todo';

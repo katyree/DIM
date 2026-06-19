@@ -1335,20 +1335,15 @@
   "SetSockets": {
     "Action": "Set Sockets",
     "Apply": "Apply to Selected Items",
-    "Choose": "Choose Sockets to set",
-    "Running": "Applying Sockets",
-    "Done": "Applied Sockets",
+    "Choose": "Choose Shader sockets to set",
+    "Running": "Applying Shaders",
+    "Done": "Applied Shaders",
     "Ok": "Ok",
     "Cancel": "Cancel",
-    "NoSockets": "No Sockets to set",
+    "NoSockets": "No Shader sockets to set",
     "NoCompatibleTitle": "No compatible items",
-    "NoCompatibleBody": "That socket choice would not change any of the selected items.",
-    "Shaders": "{{count}}x Shader",
-    "Ornaments": "{{count}}x Ornament",
-    "WeaponMods": "{{count}}x Weapon Mod",
-    "DiscountedMods": "{{count}}x Discounted Mod",
-    "ArmorMods": "{{count}}x Armor Mod",
-    "Others": "{{count}}x Ghost Projection"
+    "NoCompatibleBody": "That shader choice would not change any of the selected items.",
+    "Shaders": "{{count}}x Shader"
   },
   "Stats": {
     "Custom": "Custom Total",
