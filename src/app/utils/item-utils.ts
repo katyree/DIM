@@ -26,9 +26,7 @@ import {
   modTypeTagByPlugCategoryHash,
 } from 'app/search/specialty-modslots';
 import { DamageType, DestinyClass, DestinyInventoryItemDefinition } from 'bungie-api-ts/destiny2';
-import artifactBreakerMods from 'data/d2/artifact-breaker-weapon-types.json';
 import {
-  BreakerTypeHashes,
   BucketHashes,
   ItemCategoryHashes,
   PlugCategoryHashes,
@@ -97,8 +95,9 @@ export const getSpecialtySocketMetadata = (item?: DimItem): ModSocketMetadata | 
 /**
  * returns mod type tag if the plugCategoryHash (from a mod definition's .plug) is known
  */
-export const getModTypeTagByPlugCategoryHash = (plugCategoryHash: number): string | undefined =>
-  modTypeTagByPlugCategoryHash[plugCategoryHash as PlugCategoryHashes];
+export const getModTypeTagByPlugCategoryHash = (
+  plugCategoryHash: PlugCategoryHashes,
+): string | undefined => modTypeTagByPlugCategoryHash[plugCategoryHash];
 
 /** feed a **mod** definition into this */
 export const isArmor2Mod = (item: DestinyInventoryItemDefinition): boolean =>
@@ -348,32 +347,6 @@ export function isItemLoadoutCompatible(itemClass: DestinyClass, loadoutClass: D
   return itemClass === DestinyClass.Unknown || itemClass === loadoutClass;
 }
 
-const ichToBreakerType = Object.entries(artifactBreakerMods).reduce<
-  Partial<Record<ItemCategoryHashes, BreakerTypeHashes>>
->((memo, [breakerType, iches]) => {
-  const breakerTypeNum = parseInt(breakerType, 10);
-  for (const ich of iches) {
-    memo[ich] = breakerTypeNum;
-  }
-  return memo;
-}, {});
-
-/**
- * Get the effective breaker type of a weapon as granted by the seasonal
- * artifact. This does not include intrinsic breaker types (e.g. on some
- * exotics) so you should check item.breakerType first if you want the effective
- * overall breaker type, as intrinsic breaker beats artifact breaker.
- */
-export function getSeasonalBreakerTypeHash(item: DimItem): number | undefined {
-  if (item.destinyVersion === 2 && item.bucket.inWeapons && !item.breakerType) {
-    for (const ich of item.itemCategoryHashes) {
-      if (ichToBreakerType[ich]) {
-        return ichToBreakerType[ich];
-      }
-    }
-  }
-}
-
 /** The full item type name shown as a subtitle in the item popup. e.g. "Hunter Gauntlets" */
 export function itemTypeName(item: DimItem) {
   const classType =
@@ -434,10 +407,17 @@ export function getArmor3TuningStat(item: DimItem): StatHashes | undefined {
     return;
   }
 
+  let tunedStat: StatHashes | undefined;
   for (const { plugItemHash } of reusablePlugItems) {
-    if (plugItemHash in tuningModToTunedStathash) {
-      return tuningModToTunedStathash[plugItemHash];
+    const stat = tuningModToTunedStathash[plugItemHash];
+    if (stat !== undefined) {
+      if (tunedStat !== undefined && tunedStat !== stat) {
+        // Multiple different stat tuners available (e.g. exotics) --
+        // this item isn't locked to a single tuning stat.
+        return undefined;
+      }
+      tunedStat = stat;
     }
   }
-  return undefined;
+  return tunedStat;
 }

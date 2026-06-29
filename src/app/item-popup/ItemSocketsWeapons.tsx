@@ -96,18 +96,17 @@ export default function ItemSocketsWeapons({
               {keyStats && keyStats.length > 0 && (
                 <div className={styles.stats}>
                   {keyStats
-                    ?.map(
-                      (s) =>
-                        `${s.value} ${(
-                          statLabels[s.statHash as StatHashes] || s.displayProperties.name
-                        ).toLowerCase()}`,
-                    )
+                    ?.map((s) => {
+                      const statHash: StatHashes = s.statHash;
+                      return `${s.value} ${(
+                        statLabels[statHash] || s.displayProperties.name
+                      ).toLowerCase()}`;
+                    })
                     ?.join(' / ')}
                 </div>
               )}
             </ArchetypeSocket>
           )}
-          {mods.length > 0 && <ItemSocketsList>{mods.map(renderSocket)}</ItemSocketsList>}
         </ArchetypeRow>
       )}
       {perks &&
@@ -142,6 +141,11 @@ export default function ItemSocketsWeapons({
             )}
           </div>
         ))}
+      {!minimal && mods.length > 0 && (
+        <ArchetypeRow isWeapons className={styles.archetype}>
+          <ItemSocketsList>{mods.map(renderSocket)}</ItemSocketsList>
+        </ArchetypeRow>
+      )}
     </>
   );
 }

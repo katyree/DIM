@@ -1,15 +1,16 @@
 import { SetBonusCounts } from '@destinyitemmanager/dim-api-types';
 import { D2ManifestDefinitions } from 'app/destiny2/d2-definitions';
 import { DimItem, PluggableInventoryItemDefinition } from 'app/inventory/item-types';
+import { isExoticClassItemWithPerks } from 'app/inventory/store/exotic-class-item';
 import { calculateAssumedMasterworkStats } from 'app/loadout-drawer/loadout-utils';
 import { calculateAssumedItemEnergy } from 'app/loadout/armor-upgrade-utils';
-import { fotlWildcardHashes } from 'app/loadout/known-values';
 import { ModMap, assignBucketSpecificMods } from 'app/loadout/mod-assignment-utils';
 import { armorStats } from 'app/search/d2-known-values';
 import { ItemFilter } from 'app/search/filter-types';
 import { sumBy } from 'app/utils/collections';
 import { getModTypeTagByPlugCategoryHash, getSpecialtySocketMetadata } from 'app/utils/item-utils';
 import { warnLog } from 'app/utils/log';
+import { getExtraIntrinsicPerkHashes, getSetBonusModSocket } from 'app/utils/socket-utils';
 import { computeStatDupeLower } from 'app/utils/stats';
 import { BucketHashes } from 'data/d2/generated-enums';
 import { sum } from 'es-toolkit';
@@ -59,6 +60,7 @@ export function filterItems({
   armorEnergyRules,
   searchFilter,
   setBonuses,
+  perks,
 }: {
   defs: D2ManifestDefinitions | undefined;
   items: DimItem[];
@@ -70,6 +72,8 @@ export function filterItems({
   armorEnergyRules: ArmorEnergyRules;
   searchFilter: ItemFilter;
   setBonuses?: SetBonusCounts;
+  /** Perk hashes required on armor items in the set. Used to pre-filter items with matching intrinsic perks. */
+  perks?: number[];
 }): [ItemsByBucket, FilterInfo] {
   const filteredItems: Draft<ItemsByBucket> = {
     [BucketHashes.Helmet]: [],
@@ -115,7 +119,7 @@ export function filterItems({
       );
 
   // Group by bucket
-  const itemsByBucket = Map.groupBy(items, (item) => item.bucket.hash as ArmorBucketHash);
+  const itemsByBucket = Map.groupBy(items, (item): ArmorBucketHash => item.bucket.hash);
 
   const lockedExoticDef =
     lockedExoticHash && lockedExoticHash > 0 ? defs.InventoryItem.get(lockedExoticHash) : undefined;
@@ -169,8 +173,24 @@ export function filterItems({
       // If the user pinned an item, that's what they get
       firstPassFilteredItems = [pinnedItem];
     } else if (exotics) {
-      // If the user chose an exotic, only include items matching that exotic
-      firstPassFilteredItems = exotics;
+      // If the user chose an exotic, only include items matching that exotic.
+      // For exotic class items with selected perks, further filter to matching items.
+      if (perks?.length && isExoticClassItemWithPerks(lockedExoticHash)) {
+        // Build the set of all possible exotic class item perk hashes so we only
+        // filter by perks that actually belong to these sockets, ignoring any
+        // other perk hashes that may be in loadoutParams.perks (e.g. regular armor intrinsics).
+        const allClassPerkHashes = new Set(exotics.flatMap(getExtraIntrinsicPerkHashes));
+        const relevantPerks = perks.filter((p) => allClassPerkHashes.has(p));
+        firstPassFilteredItems =
+          relevantPerks.length > 0
+            ? exotics.filter((item) => {
+                const equipped = new Set(getExtraIntrinsicPerkHashes(item));
+                return relevantPerks.every((p) => equipped.has(p));
+              })
+            : exotics;
+      } else {
+        firstPassFilteredItems = exotics;
+      }
     } else if (
       // The user chose to exclude all exotics
       lockedExoticHash === LOCKED_EXOTIC_NO_EXOTIC ||
@@ -195,7 +215,7 @@ export function filterItems({
       firstPassFilteredItems = firstPassFilteredItems.filter(
         (item) =>
           (item.setBonus && includeOnlySetBonusHashes.includes(item.setBonus.hash)) ||
-          fotlWildcardHashes.has(item.hash),
+          getSetBonusModSocket(item),
       );
     }
 

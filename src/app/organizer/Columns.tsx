@@ -7,7 +7,6 @@ import { SpecialtyModSlotIcon } from 'app/dim-ui/SpecialtyModSlotIcon';
 import { I18nKey, t, tl } from 'app/i18next-t';
 import ItemIcon, { DefItemIcon } from 'app/inventory/ItemIcon';
 import ItemPopupTrigger from 'app/inventory/ItemPopupTrigger';
-import NewItemIndicator from 'app/inventory/NewItemIndicator';
 import TagIcon from 'app/inventory/TagIcon';
 import { TagValue, tagConfig } from 'app/inventory/dim-item-info';
 import { D1Item, DimItem, DimSocket, DimStat } from 'app/inventory/item-types';
@@ -240,7 +239,6 @@ export function getColumns(
   hasWishList: boolean,
   customStatDefs: CustomStatDef[],
   loadoutsByItem: LoadoutsByItem,
-  newItems: Set<string>,
   destinyVersion: DestinyVersion,
   onPlugClicked?: PlugClickedHandler,
 ): ColumnDefinition[] {
@@ -389,29 +387,6 @@ export function getColumns(
       filter: (value) => `tag:${value || 'none'}`,
       csv: (value) => ['Tag', value || undefined],
     }),
-    !isSpreadsheet &&
-      $featureFlags.newItems &&
-      c({
-        id: 'new',
-        header: t('Organizer.Columns.New'),
-        className: styles.new,
-        headerClassName: styles.centered,
-        value: (item) => newItems.has(item.id),
-        cell: (value) => (value ? <NewItemIndicator /> : undefined),
-        defaultSort: SortDirection.DESC,
-        filter: (value) => `${value ? '' : '-'}is:new`,
-      }),
-    c({
-      id: 'featured',
-      header: t('Organizer.Columns.Featured'),
-      className: styles.centered,
-      headerClassName: styles.centered,
-      defaultSort: SortDirection.DESC,
-      value: (item) => item.featured,
-      cell: (value) => value && <AppIcon icon={faCheck} />,
-      filter: (value) => `${value ? '' : '-'}is:featured`,
-      csv: 'New Gear',
-    }),
     c({
       id: 'holofoil',
       header: t('Organizer.Columns.Holofoil'),
@@ -557,7 +532,8 @@ export function getColumns(
           ),
         filter: (_val, item) =>
           item.breakerType
-            ? `breaker:${breakerTypeNames[item.breakerType.hash as BreakerTypeHashes]}`
+            ? // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+              `breaker:${breakerTypeNames[item.breakerType.hash as BreakerTypeHashes]}`
             : undefined,
       }),
     destinyVersion === 2 &&
@@ -1018,7 +994,7 @@ export function getStatColumns(
   const csvStatNames = csvStatNamesForDestinyVersion(destinyVersion);
 
   const statColumns: ColumnWithStat[] = filterMap(stats, (stat): ColumnWithStat | undefined => {
-    const statHash = stat.statHash as StatHashes;
+    const statHash: StatHashes = stat.statHash;
     if (customStatHashes.includes(statHash)) {
       // Exclude custom total, it has its own column
       return undefined;
@@ -1079,7 +1055,7 @@ export function getStatColumns(
         if (typeof firstValue === 'number' && typeof secondValue === 'number') {
           const firstItemTuningHash = getArmor3TuningStat(firstItem);
           const secondItemTuningHash = getArmor3TuningStat(secondItem);
-          if ((statHash as number) === TOTAL_STAT_HASH) {
+          if (Number(statHash) === TOTAL_STAT_HASH) {
             if (firstItemTuningHash) {
               firstValue += 0.5;
             } else if (isArtifice(firstItem)) {
@@ -1191,7 +1167,7 @@ export function getStatColumns(
     destinyVersion === 1 && isArmor
       ? stats
           .map((stat): ColumnWithStat => {
-            const statHash = stat.statHash as StatHashes;
+            const statHash = stat.statHash;
             return {
               statHash,
               id: `quality_${statHash}`,

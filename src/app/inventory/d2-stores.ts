@@ -9,11 +9,12 @@ import { t } from 'app/i18next-t';
 import { inGameLoadoutLoaded } from 'app/loadout/ingame/actions';
 import { processInGameLoadouts } from 'app/loadout/loadout-type-converters';
 import { loadCoreSettings } from 'app/manifest/actions';
-import { checkForNewManifest } from 'app/manifest/manifest-service-json';
+import { checkForNewManifest, reloadToUpdateManifest } from 'app/manifest/manifest-service-json';
 import { d2ManifestSelector, manifestSelector } from 'app/manifest/selectors';
 import { loadingTracker } from 'app/shell/loading-tracker';
 import { get, set } from 'app/storage/idb-keyval';
 import { ThunkResult } from 'app/store/types';
+import { isMobileBrowser } from 'app/utils/browsers';
 import { DimError } from 'app/utils/dim-error';
 import { convertToError, errorMessage } from 'app/utils/errors';
 import { errorLog, infoLog, timer, warnLog } from 'app/utils/log';
@@ -29,7 +30,6 @@ import {
   CharacterInfo,
   charactersUpdated,
   error,
-  loadNewItems,
   profileError,
   profileLoaded,
   update,
@@ -151,7 +151,6 @@ export function loadStores({
 
             dispatch(loadCoreSettings()); // no need to wait
             $featureFlags.clarityDescriptions && dispatch(loadClarity()); // no need to await
-            await dispatch(loadNewItems(account));
             // The first time we load, allow the data to be loaded from IDB. We then do a second
             // load to make sure that we immediately try to get remote data.
             if (firstTime) {
@@ -367,7 +366,7 @@ function loadStoresData(
             return;
           }
 
-          for (let i = 0; i < 2; i++) {
+          for (let attempt = 0; attempt < 2; attempt++) {
             if (!defs || !profileInfo) {
               infoLog(TAG, 'No defs or profile info, skipping store load', {
                 defs: Boolean(defs),
@@ -382,23 +381,36 @@ function loadStoresData(
 
             const buckets = d2BucketsSelector(getState())!;
             const customStats = customStatsSelector(getState());
-            const stores = buildStores({
-              defs,
-              buckets,
-              customStats,
-              profileResponse,
-            });
+            const stores = buildStores(
+              {
+                defs,
+                buckets,
+                customStats,
+                profileResponse,
+              },
+              // Only report missing-def items on the second attempt: the loop only
+              // reaches attempt 1 after we've already refreshed the manifest below, so a
+              // def that's still missing here isn't just a stale manifest.
+              attempt === 1,
+            );
 
             // One reason stores could have errors is if the manifest was not up
             // to date. Check to see if it has updated, and if so, download it and
             // immediately try again.
             if (
               stores.some((s) => s.hadErrors) &&
-              lastCheckedManifest - Date.now() > 5 * 60 * 1000
+              Date.now() - lastCheckedManifest > 5 * 60 * 1000
             ) {
               lastCheckedManifest = Date.now();
 
               if (await checkForNewManifest()) {
+                // On mobile, downloading the new manifest while the old one is
+                // still in memory can get the page killed for using too much
+                // memory - reload the app instead, so the new manifest is
+                // downloaded on a fresh boot.
+                if (isMobileBrowser() && (await reloadToUpdateManifest())) {
+                  return;
+                }
                 defs = await dispatch(getDefinitions(true));
                 continue; // go back to the top of the loop with the new defs
               }

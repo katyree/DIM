@@ -2,6 +2,7 @@ import { getBuckets } from 'app/destiny2/d2-buckets';
 import { allTables, buildDefinitionsFromManifest } from 'app/destiny2/d2-definitions';
 import { buildStores } from 'app/inventory/store/d2-store-factory';
 import { downloadManifestComponents } from 'app/manifest/manifest-service-json';
+import { percent } from 'app/shell/formatters';
 import { humanBytes } from 'app/storage/human-bytes';
 import { delay } from 'app/utils/promises';
 import { AllDestinyManifestComponents, DestinyManifest } from 'bungie-api-ts/destiny2';
@@ -24,8 +25,8 @@ import zhCHS from 'locale/zhCHS.json';
 import zhCHT from 'locale/zhCHT.json';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import profile from 'testing/data/profile-2025-12-02.json';
-import vendors from 'testing/data/vendors-2025-12-02.json';
+import profile from 'testing/data/profile-2026-06-09.json';
+import vendors from 'testing/data/vendors-2026-06-09.json';
 import { getManifest as d2GetManifest } from '../app/bungie-api/destiny2-api';
 
 /**
@@ -148,25 +149,13 @@ export const getTestStores = once(async () => {
  *
  * Use `i18next.changeLanguage('en');` to set language before tests.
  */
-export function setupi18n() {
-  i18next.init({
+export async function setupi18n() {
+  await i18next.init({
     lng: 'en',
     debug: true,
     lowerCaseLng: true,
     interpolation: {
       escapeValue: false,
-      format(val: string, format) {
-        switch (format) {
-          case 'pct':
-            return `${Math.min(100, Math.floor(100 * parseFloat(val)))}%`;
-          case 'humanBytes':
-            return humanBytes(parseInt(val, 10));
-          case 'number':
-            return parseInt(val, 10).toLocaleString();
-          default:
-            return val;
-        }
-      },
     },
     resources: {
       en: {
@@ -210,4 +199,6 @@ export function setupi18n() {
       },
     },
   });
+  i18next.services.formatter?.add('pct', percent);
+  i18next.services.formatter?.add('humanBytes', (val) => humanBytes(parseInt(val as string, 10)));
 }

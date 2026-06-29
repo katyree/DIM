@@ -179,7 +179,6 @@ export function makeFakeItem(
  * @param defs the manifest definitions
  * @param buckets the bucket definitions
  * @param previousItems a set of item IDs representing the previous store's items
- * @param newItems a set of item IDs representing the previous list of new items
  * @param item "raw" item from the Destiny API
  * @param owner the ID of the owning store.
  */
@@ -367,7 +366,6 @@ function makeItem(
     missingSockets: false,
     energy: null,
     pursuit: null,
-    featured: false,
     tier: 0,
     adept: false,
     holofoil: false,

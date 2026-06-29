@@ -23,7 +23,7 @@ const simpleFilters: ItemFilterDefinition[] = compact<ItemFilterDefinition | fal
     description: tl('Filter.Weapon'),
     filter: () => (item) =>
       item.bucket?.sort === 'Weapons' &&
-      item.bucket.hash !== BucketHashes.SeasonalArtifact &&
+      item.bucket.hash !== BucketHashes.Artifacts &&
       item.bucket.hash !== BucketHashes.Subclass,
   },
   {
@@ -76,14 +76,6 @@ const simpleFilters: ItemFilterDefinition[] = compact<ItemFilterDefinition | fal
     description: tl('Filter.Locked'),
     filter: () => (item) => item.lockable && !item.locked,
   },
-  $featureFlags.newItems && {
-    keywords: 'new',
-    description: tl('Filter.NewItems'),
-    filter:
-      ({ newItems }) =>
-      (item) =>
-        newItems.has(item.id),
-  },
   {
     keywords: 'sunset',
     destinyVersion: 2,
@@ -110,12 +102,6 @@ const simpleFilters: ItemFilterDefinition[] = compact<ItemFilterDefinition | fal
       const ownedHashes = new Set(allItems.map((item) => item.hash));
       return (item) => ownedHashes.has(item.hash);
     },
-  },
-  {
-    keywords: ['featured', 'newgear'],
-    description: tl('Filter.Featured'),
-    destinyVersion: 2,
-    filter: () => (item) => item.featured,
   },
 ]);
 

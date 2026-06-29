@@ -17,8 +17,11 @@ import {
 // this file has non-programatically decided information
 // hashes, names, & enums, hand-crafted and chosen by us
 
+// An image like ⍁ that one should try to find a replacement image for.
 export const d2MissingIcon = '/img/misc/missing_icon_d2.png';
-
+// A "Default Ornament" definition that advertises having a screenshot,
+// but doesn't have one, and shouldn't be used if it did.
+export const badDefaultOrnament = 3854296178;
 //
 // GAME MECHANICS KNOWN VALUES
 //
@@ -291,11 +294,7 @@ export const SOME_OTHER_DUMMY_BUCKET = 3621873013;
 // like you can have 1 equipped but it's glued to the character.
 // this array is used to prevent them from
 // having normal equipment sidecar buttons
-export const uniqueEquipBuckets = [
-  BucketHashes.SeasonalArtifact,
-  BucketHashes.Emotes,
-  BucketHashes.Finishers,
-];
+export const uniqueEquipBuckets = [BucketHashes.Emotes, BucketHashes.Finishers];
 
 /**
  * Bucket for what appears to be milestone quest steps
@@ -405,6 +404,12 @@ export const breakerTypes = {
   overload: [BreakerTypeHashes.Disruption],
   stagger: [BreakerTypeHashes.Stagger],
   unstoppable: [BreakerTypeHashes.Stagger],
+};
+
+export const breakerTypeByPerkHash: Partial<Record<number, BreakerTypeHashes>> = {
+  2917776374: BreakerTypeHashes.Stagger,
+  3469621377: BreakerTypeHashes.ShieldPiercing,
+  472686235: BreakerTypeHashes.Disruption,
 };
 
 export const breakerTypeNames = Object.entries(breakerTypes)

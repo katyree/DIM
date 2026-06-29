@@ -14,7 +14,12 @@ import {
 import { armorStats } from 'app/search/d2-known-values';
 import { filterMap, mapValues, sumBy } from 'app/utils/collections';
 import { compareBy } from 'app/utils/comparators';
-import { getArmor3TuningSocket } from 'app/utils/socket-utils';
+import {
+  getArmor3TuningSocket,
+  getExtraIntrinsicPerkSockets,
+  getIntrinsicArmorPerkSocket,
+  getSetBonusModSocket,
+} from 'app/utils/socket-utils';
 import { emptyPlugHashes } from 'data/d2/empty-plug-hashes';
 import { StatHashes } from 'data/d2/generated-enums';
 import { minBy } from 'es-toolkit';
@@ -81,6 +86,12 @@ export function mapDimItemToProcessItems({
 
   const assumeArtifice = isAssumedArtifice(dimItem, armorEnergyRules);
 
+  const intrinsicPerkHashes = filterMap(
+    [getIntrinsicArmorPerkSocket(dimItem), ...getExtraIntrinsicPerkSockets(dimItem)],
+    (s) => s?.plugged?.plugDef.hash,
+  );
+  const intrinsicPerks = intrinsicPerkHashes.length > 0 ? intrinsicPerkHashes : undefined;
+
   const processItem: ProcessItem = {
     id,
     hash,
@@ -92,12 +103,17 @@ export function mapDimItemToProcessItems({
     remainingEnergyCapacity: capacity - modsCost,
     compatibleActivityMod: compatibleActivityMod,
     setBonus: setBonus?.hash,
+    hasSetBonusModSocket: Boolean(getSetBonusModSocket(dimItem)),
+    intrinsicPerks,
   };
 
   const tuningSocket = getArmor3TuningSocket(dimItem);
 
   // Make a version of the item for each possible tuning mod that could be applied.
-  if (autoStatMods && tuningSocket?.reusablePlugItems?.length) {
+  //
+  // exclude tuning mods for exotics since they have so many tuning options that it blows up the combinations.
+  //
+  if (autoStatMods && !isExotic && tuningSocket?.reusablePlugItems?.length) {
     const processItems: ProcessItem[] = [];
     const allPlugs = tuningSocket.plugSet?.plugs;
     // By default, we'll sacrifice the last ignored stat, or the last from among the lowest maximums

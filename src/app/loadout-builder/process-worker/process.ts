@@ -1,5 +1,5 @@
 import { SetBonusCounts } from '@destinyitemmanager/dim-api-types';
-import { fotlWildcardHashes, MAX_STAT } from 'app/loadout/known-values';
+import { MAX_STAT } from 'app/loadout/known-values';
 import { compact, filterMap } from 'app/utils/collections';
 import { BucketHashes } from 'data/d2/generated-enums';
 import { sum } from 'es-toolkit';
@@ -42,6 +42,11 @@ export interface ProcessInputs {
   lockedMods: LockedProcessMods;
   /** If we're requiring any set bonuses, the number of items desired from each set */
   setBonuses: SetBonusCounts;
+  /**
+   * Required armor perks and how many items in the set must have each perk.
+   * Duplicate entries in the source perks array are collapsed into counts here.
+   */
+  requiredPerks: { hash: number; count: number }[];
   /** The user's chosen stat ranges, in priority order. */
   desiredStatRanges: DesiredStatRange[];
   /** Ensure every set includes one exotic */
@@ -68,6 +73,7 @@ export async function process(
     modStatTotals,
     lockedMods,
     setBonuses,
+    requiredPerks,
     desiredStatRanges,
     anyExotic,
     autoModOptions,
@@ -80,7 +86,7 @@ export async function process(
   const pstart = performance.now();
 
   // For efficiency, we'll handle most stats as flat arrays in the order the user prioritized their stats.
-  const statOrder = desiredStatRanges.map(({ statHash }) => statHash as ArmorStatHashes);
+  const statOrder = desiredStatRanges.map(({ statHash }): ArmorStatHashes => statHash);
   // The maximum stat constraints for each stat
   const maxStatConstraints = desiredStatRanges.map(({ maxStat }) => maxStat);
   // Convert the list of stat bonuses from mods into a flat array in the same order as `statOrder`.
@@ -134,6 +140,7 @@ export async function process(
       noExotic: 0,
       skippedLowTier: 0,
       insufficientSetBonus: 0,
+      insufficientPerks: 0,
     },
     lowerBoundsExceeded: { timesChecked: 0, timesFailed: 0 },
     modsStatistics: {
@@ -195,25 +202,39 @@ export async function process(
   }
 
   let comboCount = 0;
+  // required perks' hashes
+  const perkHashes = requiredPerks.map((p) => p.hash);
+  // count of each perk on this item, in an array w/ same order as perkHashes
+  const perkCount = (item: ProcessItem) =>
+    perkHashes.map((hash) => (item.intrinsicPerks?.includes(hash) ? 1 : 0));
+
   itemLoop: for (let helmIdx = 0; helmIdx < helms.length; helmIdx++) {
     const helm = helms[helmIdx];
     const helmExotic = Number(helm.isExotic);
     const helmArtifice = Number(helm.isArtifice);
+    const helmWildcard = helm.hasSetBonusModSocket ? 1 : 0;
+    const helmPerks = perkCount(helm);
     const helmStats = statsCache.get(helm)!;
     for (let gauntIdx = 0; gauntIdx < gauntlets.length; gauntIdx++) {
       const gaunt = gauntlets[gauntIdx];
       const gauntletExotic = Number(gaunt.isExotic);
       const gauntArtifice = Number(gaunt.isArtifice);
+      const gauntWildcard = gaunt.hasSetBonusModSocket ? 1 : 0;
+      const gauntPerks = perkCount(gaunt);
       const gauntStats = statsCache.get(gaunt)!;
       for (let chestIdx = 0; chestIdx < chests.length; chestIdx++) {
         const chest = chests[chestIdx];
         const chestExotic = Number(chest.isExotic);
         const chestArtifice = Number(chest.isArtifice);
+        const chestWildcard = chest.hasSetBonusModSocket ? 1 : 0;
+        const chestPerks = perkCount(chest);
         const chestStats = statsCache.get(chest)!;
         for (let legIdx = 0; legIdx < legs.length; legIdx++) {
           const leg = legs[legIdx];
           const legExotic = Number(leg.isExotic);
           const legArtifice = Number(leg.isArtifice);
+          const legWildcard = leg.hasSetBonusModSocket ? 1 : 0;
+          const legPerks = perkCount(leg);
           const legStats = statsCache.get(leg)!;
           innerloop: for (let classItemIdx = 0; classItemIdx < classItems.length; classItemIdx++) {
             const classItem = classItems[classItemIdx];
@@ -228,6 +249,7 @@ export async function process(
 
             const classItemExotic = Number(classItem.isExotic);
             const classItemArtifice = Number(classItem.isArtifice);
+            const classItemWildcard = classItem.hasSetBonusModSocket ? 1 : 0;
             const classItemStats = statsCache.get(classItem)!;
 
             // Check exotic constraints
@@ -242,8 +264,20 @@ export async function process(
               continue;
             }
 
-            // Check set bonus requirements
-            let wildcardAvailable = true;
+            // Check required perk counts across the set
+            const classItemPerks = perkCount(classItem);
+            for (let i = 0; i < requiredPerks.length; i++) {
+              const actualCount =
+                helmPerks[i] + gauntPerks[i] + chestPerks[i] + legPerks[i] + classItemPerks[i];
+              if (actualCount < requiredPerks[i].count) {
+                setStatistics.skipReasons.insufficientPerks++;
+                continue innerloop;
+              }
+            }
+
+            // Set bonuses; each slot can use one wildcard if present
+            let wildcardsRemaining =
+              helmWildcard + gauntWildcard + chestWildcard + legWildcard + classItemWildcard;
             for (let i = 0; i < setBonusHashes.length; i++) {
               const setHash = setBonusHashes[i];
               const setNeededCount = setBonusCounts[i];
@@ -254,12 +288,9 @@ export async function process(
                 Number(leg.setBonus === setHash) +
                 Number(classItem.setBonus === setHash);
               if (setCount < setNeededCount) {
-                if (
-                  wildcardAvailable &&
-                  fotlWildcardHashes.has(helm.hash!) &&
-                  setCount + 1 === setNeededCount
-                ) {
-                  wildcardAvailable = false;
+                const wildcardsNeeded = setNeededCount - setCount;
+                if (wildcardsRemaining >= wildcardsNeeded) {
+                  wildcardsRemaining -= wildcardsNeeded;
                 } else {
                   setStatistics.skipReasons.insufficientSetBonus += 1;
                   continue innerloop;

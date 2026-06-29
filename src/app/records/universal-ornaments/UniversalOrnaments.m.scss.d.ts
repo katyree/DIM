@@ -4,9 +4,7 @@ interface CssExports {
   'classIcon': string;
   'classType': string;
   'ornaments': string;
-  'record': string;
   'records': string;
-  'redeemed': string;
 }
 export const cssExports: CssExports;
 export = cssExports;

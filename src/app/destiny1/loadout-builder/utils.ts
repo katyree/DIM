@@ -136,7 +136,7 @@ export function getBestArmor(
   const excludedIndices = new Set(excluded.map((i) => i.index));
 
   for (const armortypestr in bucket) {
-    const armortype = parseInt(armortypestr, 10) as ArmorTypes;
+    const armortype: ArmorTypes = parseInt(armortypestr, 10);
     const combined = includeVendors
       ? bucket[armortype].concat(vendorBucket[armortype])
       : bucket[armortype];
@@ -240,9 +240,8 @@ export function mergeBuckets<T extends any[]>(
 ) {
   const merged: Partial<{ [armorType in ArmorTypes]: T }> = {};
   for (const [type, bucket] of Object.entries(bucket1)) {
-    merged[parseInt(type, 10) as ArmorTypes] = bucket.concat(
-      bucket2[parseInt(type, 10) as ArmorTypes],
-    ) as T;
+    const armorType: ArmorTypes = parseInt(type, 10);
+    merged[armorType] = bucket.concat(bucket2[armorType]) as T;
   }
   return merged as { [armorType in ArmorTypes]: T };
 }
@@ -321,11 +320,13 @@ function getBuckets(items: D1Item[]): ItemBucket {
   };
 }
 
-function normalizeStats(item: D1ItemWithNormalStats) {
-  item.normalStats = {};
+function normalizeStats(item: D1ItemWithNormalStats): D1ItemWithNormalStats {
+  // Build the normalStats map locally and return a copy rather than mutating the
+  // item in place: items come from the (frozen) Redux store and are not extensible.
+  const normalStats: NonNullable<D1ItemWithNormalStats['normalStats']> = {};
   if (item.stats) {
     for (const stat of item.stats) {
-      item.normalStats[stat.statHash] = {
+      normalStats[stat.statHash] = {
         statHash: stat.statHash,
         base: stat.base,
         scaled: stat.scaled ? stat.scaled.min : 0,
@@ -335,5 +336,5 @@ function normalizeStats(item: D1ItemWithNormalStats) {
       };
     }
   }
-  return item;
+  return { ...item, normalStats };
 }

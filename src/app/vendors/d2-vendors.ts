@@ -17,6 +17,7 @@ import {
 } from 'bungie-api-ts/destiny2';
 import { ItemCategoryHashes } from 'data/d2/generated-enums';
 import specialVendorStrings from 'data/d2/special-vendors-strings.json';
+import vendorIconOverrides from 'data/d2/vendor-image-overrides.json';
 import { VendorItem, vendorItemForDefinitionItem, vendorItemForSaleItem } from './vendor-item';
 export interface D2VendorGroup {
   def: DestinyVendorGroupDefinition;
@@ -30,9 +31,100 @@ export interface D2Vendor {
   place?: DestinyPlaceDefinition;
   items: VendorItem[];
   currencies: DestinyInventoryItemDefinition[];
+  /**
+   * The vendor's "help" item, if it has one. It describes the reputation track and
+   * is pulled out of the regular sale items so it can be shown alongside the rep
+   * track instead. Only set when the vendor actually has a rep track.
+   */
+  helpItem?: VendorItem;
 }
 
 const vendorOrder = [VendorHashes.AdaTransmog, VendorHashes.Banshee, VendorHashes.Eververse];
+
+/**
+ * Cache of built vendors. On the vendors page each vendor's item components
+ * arrive separately, so the stored response updates many times before it's
+ * complete. Rebuilding every vendor on each of those updates is wasteful, so we
+ * reuse a previously built vendor whenever none of its inputs changed identity.
+ *
+ * We can compare inputs by reference because the response is updated
+ * immutably: an update that touches one vendor produces a new reference for
+ * that vendor's slice but leaves the other vendors' `vendorComponent`, `sales`,
+ * and `itemComponents` referencing the same objects as before. So an unchanged
+ * vendor's cached entry still matches and is reused.
+ */
+interface BuiltVendorCacheEntry {
+  context: ItemCreationContext;
+  vendorComponent: DestinyVendorComponent | undefined;
+  sales: { [key: string]: DestinyVendorSaleItemComponent } | undefined;
+  itemComponents: NonNullable<DestinyVendorsResponse['itemComponents']>[number] | undefined;
+  salesData: DestinyVendorsResponse['sales']['data'];
+  result: D2Vendor | undefined;
+}
+// Keyed by `${characterId}-${vendorHash}` since a vendor is built per
+// character. The number of entries is bounded by characters times vendors, so
+// it never grows large enough to need eviction.
+const builtVendorCache = new Map<string, BuiltVendorCacheEntry>();
+
+function buildVendorMemoized(
+  context: ItemCreationContext,
+  vendorsResponse: DestinyVendorsResponse,
+  characterId: string,
+  vendorHash: number,
+): D2Vendor | undefined {
+  const vendorComponent = vendorsResponse.vendors.data?.[vendorHash];
+  const sales = vendorsResponse.sales.data?.[vendorHash]?.saleItems;
+  const itemComponents = vendorsResponse.itemComponents?.[vendorHash];
+  // sales.data of the whole response is read when gathering (sub-)vendor
+  // currencies, so it's part of this vendor's inputs.
+  const salesData = vendorsResponse.sales.data;
+
+  const key = `${characterId}-${vendorHash}`;
+  const cached = builtVendorCache.get(key);
+  if (
+    cached?.context === context &&
+    cached.vendorComponent === vendorComponent &&
+    cached.sales === sales &&
+    cached.itemComponents === itemComponents &&
+    cached.salesData === salesData
+  ) {
+    return cached.result;
+  }
+
+  const result = toVendor(
+    // Override the item components from the profile with this vendor's item components
+    { ...context, itemComponents },
+    vendorHash,
+    vendorComponent,
+    characterId,
+    sales,
+    vendorsResponse,
+  );
+  builtVendorCache.set(key, {
+    context,
+    vendorComponent,
+    sales,
+    itemComponents,
+    salesData,
+    result,
+  });
+  return result;
+}
+
+/**
+ * Some vendors contain a "help" item that isn't a real sale item, but instead
+ * describes the vendor's reputation track. We pull it out of the regular sale
+ * items and show it alongside the rep track instead.
+ *
+ * These items all use the shared "vendor_help" icon (icon def 13580639, foreground
+ * `.../vendor_help...png`). The more semantic-looking `tooltipStyle: 'vendor_action'`
+ * can't be used because DIM's manifest trimmer blanks `tooltipStyle` out.
+ */
+const HELP_ITEM_ICON_HASH = 13580639;
+
+function isHelpVendorItem(vendorItem: VendorItem) {
+  return vendorItem.displayProperties?.iconHash === HELP_ITEM_ICON_HASH;
+}
 
 export function toVendorGroups(
   context: ItemCreationContext,
@@ -51,15 +143,7 @@ export function toVendorGroups(
       return {
         def: groupDef,
         vendors: filterMap(group.vendorHashes, (vendorHash) => {
-          const vendor = toVendor(
-            // Override the item components from the profile with this vendor's item components
-            { ...context, itemComponents: vendorsResponse.itemComponents?.[vendorHash] },
-            vendorHash,
-            vendorsResponse.vendors.data?.[vendorHash],
-            characterId,
-            vendorsResponse.sales.data?.[vendorHash]?.saleItems,
-            vendorsResponse,
-          );
+          const vendor = buildVendorMemoized(context, vendorsResponse, characterId, vendorHash);
           return vendor?.items.length ? vendor : undefined;
         }).sort(compareByIndex(vendorOrder, (v) => v.def.hash)),
       };
@@ -80,7 +164,7 @@ export function toVendor(
   vendorsResponse: DestinyVendorsResponse | undefined,
 ): D2Vendor | undefined {
   const { defs } = context;
-  const vendorDef = defs.Vendor.get(vendorHash);
+  let vendorDef = defs.Vendor.get(vendorHash);
 
   if (!vendorDef) {
     return undefined;
@@ -104,6 +188,21 @@ export function toVendor(
     ),
   );
 
+  // Pull the "help" item out of the regular sale items so it isn't shown as a
+  // normal tile. Surface it on the rep track (if there is one) instead.
+  let helpItem: VendorItem | undefined;
+  const helpIndex = vendorItems.findIndex(isHelpVendorItem);
+  if (helpIndex >= 0) {
+    const [extracted] = vendorItems.splice(helpIndex, 1);
+    if (vendorDef.factionHash && vendor?.progression) {
+      helpItem = extracted;
+      if (helpItem.item) {
+        // It's not a real item, so don't show its placeholder type ("Unknown") in the popup.
+        helpItem.item.typeName = '';
+      }
+    }
+  }
+
   const destinationHash =
     typeof vendor?.vendorLocationIndex === 'number' && vendor.vendorLocationIndex >= 0
       ? // Unadvertised nullability: DestinyVendorDefinition.locations
@@ -123,6 +222,18 @@ export function toVendor(
   );
   currencies.sort(compareBy((i) => i.inventory?.tierType));
 
+  const iconOverride = (vendorIconOverrides as Record<string, string>)[vendorDef.hash];
+
+  if (iconOverride) {
+    vendorDef = {
+      ...vendorDef,
+      displayProperties: {
+        ...vendorDef.displayProperties,
+        smallTransparentIcon: iconOverride,
+      },
+    };
+  }
+
   return {
     component: vendor,
     def: vendorDef,
@@ -130,6 +241,7 @@ export function toVendor(
     place: placeDef,
     items: vendorItems,
     currencies,
+    helpItem,
   };
 }
 

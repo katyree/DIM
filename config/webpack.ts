@@ -1,7 +1,7 @@
 import { InjectManifest } from '@aaroon/workbox-rspack-plugin';
 import filterWebpackStats from '@bundle-stats/plugin-webpack-filter';
 import { type Configuration, rspack } from '@rspack/core';
-import ReactRefreshPlugin from '@rspack/plugin-react-refresh';
+import { ReactRefreshRspackPlugin as ReactRefreshPlugin } from '@rspack/plugin-react-refresh';
 import { CleanWebpackPlugin } from 'clean-webpack-plugin';
 import CompressionPlugin from 'compression-webpack-plugin';
 import GenerateJsonPlugin from 'generate-json-webpack-plugin';
@@ -162,6 +162,17 @@ export default (env: Env) => {
       hints: false,
     },
 
+    // Ignore a bogus "C:package.json" watch dependency that appears on Windows
+    // and triggers a spurious recompile. Must restate the default ignore since
+    // `ignored` replaces it rather than extending it.
+    watchOptions: {
+      ignored: /[\\/](?:\.git|node_modules)[\\/]|^[a-zA-Z]:[\\/]?package\.json$/,
+    },
+
+    // `rspack serve` enables lazy compilation by default, which invalidates the
+    // build as dynamic imports load and breaks the initial page. Disable it.
+    lazyCompilation: false,
+
     optimization: {
       // We always want the chunk name, otherwise it's just numbers
       // chunkIds: 'named',
@@ -172,6 +183,33 @@ export default (env: Env) => {
           return chunk.name !== 'browsercheck' && chunk.name !== 'earlyErrorReport';
         },
         automaticNameDelimiter: '-',
+        maxAsyncRequests: 30,
+        maxInitialRequests: 30,
+        cacheGroups: {
+          // node_modules shared by 2+ async (lazy) chunks get hoisted into a
+          // single shared vendor chunk instead of being duplicated into each
+          // route bundle. minSize: 0 so small-but-shared deps (comlink,
+          // react-dnd, framer-motion, es-toolkit helpers, …) are deduped too.
+          sharedVendor: {
+            test: /[\\/]node_modules[\\/]/,
+            name: 'shared-vendor',
+            chunks: 'async',
+            minChunks: 2,
+            minSize: 0,
+            priority: 10,
+            reuseExistingChunk: true,
+          },
+          // App code shared by 2+ lazy chunks (shared components + their
+          // .m.scss) gets hoisted likewise rather than copied per route.
+          common: {
+            name: 'shared',
+            chunks: 'async',
+            minChunks: 2,
+            minSize: 0,
+            priority: 5,
+            reuseExistingChunk: true,
+          },
+        },
       },
       minimizer: [
         new rspack.SwcJsMinimizerRspackPlugin({
@@ -530,7 +568,7 @@ export default (env: Env) => {
   if (env.dev) {
     // In dev we use babel to compile TS, and fork off a separate typechecker
     plugins.push(new TsCheckerRspackPlugin());
-    plugins.push(new ReactRefreshPlugin({ overlay: false }));
+    plugins.push(new ReactRefreshPlugin());
   } else {
     // env.beta and env.release
     plugins.push(
@@ -542,7 +580,7 @@ export default (env: Env) => {
           chunks: true,
           modules: true,
           excludeAssets: [
-            /data\/d1\/manifests\/d1-manifest-..(-br)?.json(.br|.gz)?/,
+            /data\/d1\/manifests\/d1-manifest-.*\.json(\.br|\.gz)?/,
             /^(?!en).+.json/,
             /webpack-stats.json/,
             /screenshots\//,

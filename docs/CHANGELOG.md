@@ -1,5 +1,47 @@
 ## Next
 
+* Chinese and Spanish language variants now fall back to their sibling variant before English for any untranslated text.
+
+## 8.130.0 <span class="changelog-date">(2026-06-21)</span>
+
+* Add custom icon for praxic blade catalyst.
+
+## 8.129.1 <span class="changelog-date">(2026-06-14)</span>
+
+## 8.129.0 <span class="changelog-date">(2026-06-14)</span>
+
+* Remove references to the "New Gear" or "Featured Items" concepts.
+
+## 8.128.1 <span class="changelog-date">(2026-06-13)</span>
+
+* Add support for the Set Bonus mod socket on event items, including `modslot:setbonus` search filter
+* d2foundry.gg links are gone again
+* Artifacts can now be equipped
+* Removed countdown from Season Pass.
+* Greatly reduced memory usage while downloading a new Destiny 2 manifest, and DIM on mobile now reloads itself automatically to pick up manifest updates. This should fix black screens and crashes on iOS (and some Android devices) after Destiny 2 updates.
+* Add Champion Breaker icons to intrinsic perk display and rearrange mod socket display
+
+## 8.128.0 <span class="changelog-date">(2026-06-07)</span>
+
+## 8.127.0 <span class="changelog-date">(2026-05-31)</span>
+
+## 8.126.0 <span class="changelog-date">(2026-05-24)</span>
+
+## 8.125.0 <span class="changelog-date">(2026-05-17)</span>
+
+## 8.124.0 <span class="changelog-date">(2026-05-10)</span>
+
+* Fix masterwork socket on newer armor not displaying correctly
+* Add the ability to select exotic class item perks in Loadout Optimizer
+* Fix Lore book title position on the Records page
+
+## 8.123.0 <span class="changelog-date">(2026-05-03)</span>
+
+* Restyle Collections Armor to match Universal Ornaments.
+* d2foundry.gg is back, and so are our links to it.
+
+## 8.122.0 <span class="changelog-date">(2026-04-26)</span>
+
 ## 8.121.0 <span class="changelog-date">(2026-04-19)</span>
 
 ## 8.120.0 <span class="changelog-date">(2026-04-12)</span>

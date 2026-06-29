@@ -32,7 +32,7 @@ import { useSetSetting } from 'app/settings/hooks';
 import { AppIcon, disabledIcon, redoIcon, refreshIcon, undoIcon } from 'app/shell/icons';
 import { querySelector, useIsPhonePortrait } from 'app/shell/selectors';
 import { filterMap } from 'app/utils/collections';
-import { emptyObject } from 'app/utils/empty';
+import { emptyArray, emptyObject } from 'app/utils/empty';
 import { isClassCompatible, itemCanBeEquippedBy } from 'app/utils/item-utils';
 import { errorLog } from 'app/utils/log';
 import { getMaxParallelCores } from 'app/utils/parallel-cores';
@@ -62,7 +62,6 @@ import {
   LoadoutOptimizerPinnedItems,
 } from './filter/LoadoutOptimizerMenuItems';
 import LoadoutOptimizerSetBonus from './filter/LoadoutOptimizerSetBonus';
-import NewFeaturedGearFilter from './filter/NewFeaturedGearFilter';
 import TierlessStatConstraintEditor from './filter/TierlessStatConstraintEditor';
 import CompareLoadoutsDrawer from './generated-sets/CompareLoadoutsDrawer';
 import GeneratedSets from './generated-sets/GeneratedSets';
@@ -243,6 +242,7 @@ export default memo(function LoadoutBuilder({
       armorEnergyRules,
       searchFilter,
       setBonuses,
+      perks: loadoutParameters.perks,
     });
     return [armorEnergyRules, items, filterInfo];
   }, [
@@ -256,6 +256,7 @@ export default memo(function LoadoutBuilder({
     lockedExoticHash,
     searchFilter,
     setBonuses,
+    loadoutParameters.perks,
   ]);
 
   const modStatChanges = useMemo(
@@ -276,6 +277,7 @@ export default memo(function LoadoutBuilder({
     selectedStore,
     filteredItems,
     setBonuses,
+    perks: loadoutParameters.perks ?? emptyArray(),
     lockedModMap,
     modStatChanges,
     armorEnergyRules,
@@ -376,7 +378,6 @@ export default memo(function LoadoutBuilder({
         className={styles.loadoutEditSection}
         processing={processing}
       />
-      <NewFeaturedGearFilter className={styles.loadoutEditSection} />
       <EnergyOptions
         assumeArmorMasterwork={assumeArmorMasterwork}
         lbDispatch={lbDispatch}
@@ -396,6 +397,7 @@ export default memo(function LoadoutBuilder({
         lbDispatch={lbDispatch}
         storeId={selectedStore.id}
         className={styles.loadoutEditSection}
+        perks={loadoutParameters.perks}
       />
       <LoadoutOptimizerSetBonus
         storeId={selectedStore.id}

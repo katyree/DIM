@@ -99,7 +99,7 @@ export function categorizeArmorMods(
   // Divide up the locked mods into general, combat and activity mod arrays, and put
   // bucket specific mods into a map keyed by bucket hash.
   for (const plannedMod of allMods) {
-    const pch = plannedMod.plug.plugCategoryHash as PlugCategoryHashes;
+    const pch: PlugCategoryHashes = plannedMod.plug.plugCategoryHash;
     if (!allActiveModSockets.some((s) => plugFitsIntoSocket(s, plannedMod.hash))) {
       // Eagerly reject mods that can't possibly fit into any socket at all under
       // any circumstances, such as deprecated (artifact) armor mods.
@@ -383,7 +383,10 @@ export function fitMostMods({
   // stats), so if we assigned them in a different order than they were chosen
   // in the process loop, we might end up with different stats than the user
   // expected.
-  const tuningItems = items.filter((i) => getArmor3TuningStat(i) !== undefined);
+  //
+  // Exclude exotics since they blow up the combos since they have all the tuning sockets.
+  //
+  const tuningItems = items.filter((i) => !i.isExotic && getArmor3TuningStat(i) !== undefined);
   for (const tuningMod of tuningMods) {
     // Find the tuning stat hash, which is the stat that gets +5 when this mod
     // is applied. For "Balanced Tuning" this should be 0.
