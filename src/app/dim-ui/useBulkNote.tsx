@@ -12,7 +12,7 @@ import { isWindows, isiOSBrowser } from 'app/utils/browsers';
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import TextareaAutosize from 'react-textarea-autosize';
-import { PressTipRoot } from './PressTip';
+import { PressTipRootContext } from './PressTip';
 import { WithSymbolsPicker } from './destiny-symbols/SymbolsPicker';
 import { useAutocomplete } from './text-complete/text-complete';
 import * as styles from './useBulkNote.m.scss';
@@ -199,7 +199,7 @@ function NotesEditor({
 
   return (
     <form name="notes" ref={form} className={styles.form}>
-      <PressTipRoot value={form}>
+      <PressTipRootContext value={form}>
         <WithSymbolsPicker input={textArea} setValue={(val) => onNotesChanged(val)}>
           <TextareaAutosize
             ref={textArea}
@@ -211,7 +211,7 @@ function NotesEditor({
             onChange={handleChange}
           />
         </WithSymbolsPicker>
-      </PressTipRoot>
+      </PressTipRootContext>
     </form>
   );
 }

@@ -23,7 +23,7 @@ import React, {
 } from 'react';
 import { AppIcon, disabledIcon } from '../shell/icons';
 import ErrorBoundary from './ErrorBoundary';
-import { PressTipRoot } from './PressTip';
+import { PressTipRootContext } from './PressTip';
 import * as styles from './Sheet.m.scss';
 import { sheetsOpen } from './sheets-open';
 import { useFixOverscrollBehavior } from './useFixOverscrollBehavior';
@@ -320,11 +320,11 @@ export default function Sheet({
   return (
     <Portal>
       <SheetDisabledContext value={setParentDisabled}>
-        <PressTipRoot value={sheet}>
+        <PressTipRootContext value={sheet}>
           <ItemPickerContainer>
             <SingleVendorSheetContainer>{sheetBody}</SingleVendorSheetContainer>
           </ItemPickerContainer>
-        </PressTipRoot>
+        </PressTipRootContext>
       </SheetDisabledContext>
     </Portal>
   );

@@ -169,7 +169,7 @@ jobs:
           retention-days: 1
 
       - name: Install SSH key
-        if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' }}
+        if: ${{ github.repository == 'DestinyItemManager/DIM' && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' }}
         uses: benoitchantre/setup-ssh-authentication-action@1.0.1
         with:
           private-key: ${{ secrets.SSH_KEY }}
@@ -181,7 +181,7 @@ jobs:
         run: pnpm syntax
 
       - name: Deploy to preview
-        if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' }}
+        if: ${{ github.repository == 'DestinyItemManager/DIM' && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' }}
         run: ./build/rsync-deploy.sh
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_KEY }}
@@ -191,7 +191,7 @@ jobs:
           REMOTE_PATH: pr.destinyitemmanager.com/${{ github.event.number }}
 
       - name: Purge CloudFlare cache
-        if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' }}
+        if: ${{ github.repository == 'DestinyItemManager/DIM' && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' }}
         run: ./build/purge-cloudflare.sh
         env:
           CLOUDFLARE_KEY: ${{ secrets.CLOUDFLARE_KEY }}
@@ -199,7 +199,7 @@ jobs:
           APP_DOMAIN: pr.destinyitemmanager.com/${{ github.event.number }}
 
       - name: Set preview URL
-        if: ${{ github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' }}
+        if: ${{ github.repository == 'DestinyItemManager/DIM' && github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' }}
         id: deploy-url
         run: |
           echo "url=https://pr.dim.gg/${{ github.event.number }}/" >> $GITHUB_OUTPUT

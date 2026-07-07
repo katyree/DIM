@@ -1194,7 +1194,7 @@
     "UsageCount": "# Used"
   },
   "SetSockets": {
-    "Action": "Set Sockets",
+    "Action": "Set Shader",
     "Apply": "Apply to Selected Items",
     "Cancel": "Cancel",
     "Choose": "Choose Shader sockets to set",

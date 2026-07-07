@@ -1335,7 +1335,7 @@
     "GridStyle": "Display perks as a grid"
   },
   "SetSockets": {
-    "Action": "Set Sockets",
+    "Action": "Set Shader",
     "Apply": "Apply to Selected Items",
     "Choose": "Choose Shader sockets to set",
     "Running": "Applying Shaders",

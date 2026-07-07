@@ -2,13 +2,14 @@ import { D2ManifestDefinitions } from 'app/destiny2/d2-definitions';
 import { t } from 'app/i18next-t';
 import { canInsertPlug, insertPlug } from 'app/inventory/advanced-write-actions';
 import { DimItem, DimSocket } from 'app/inventory/item-types';
+import { DEFAULT_ORNAMENTS } from 'app/search/d2-known-values';
 import { ThunkResult } from 'app/store/types';
 import { CancelToken } from 'app/utils/cancel';
 import { count, uniqBy } from 'app/utils/collections';
 import { errorMessage } from 'app/utils/errors';
 import { plugFitsIntoSocket } from 'app/utils/socket-utils';
 import { Destiny2CoreSettings } from 'bungie-api-ts/core';
-import { ItemCategoryHashes } from 'data/d2/generated-enums';
+import { ItemCategoryHashes, PlugCategoryHashes } from 'data/d2/generated-enums';
 import { d2ManifestSelector, destiny2CoreSettingsSelector } from '../manifest/selectors';
 
 export interface SetSocketAction {
@@ -29,49 +30,25 @@ export interface SetSocketKindGroup {
   numApplicableSockets: number;
 }
 
-function identifySocket(socket: DimSocket) {
+function socketCanAcceptShader(socket: DimSocket, defs: D2ManifestDefinitions) {
+  return defs.SocketType.get(socket.socketDefinition.socketTypeHash)?.plugWhitelist.some(
+    (plug) => plug.categoryHash === PlugCategoryHashes.Shader,
+  );
+}
+
+function identifySocket(socket: DimSocket, defs: D2ManifestDefinitions) {
   const plugDef = socket.plugged?.plugDef;
 
-  if (plugDef?.itemCategoryHashes?.includes(ItemCategoryHashes.Shaders)) {
+  if (
+    plugDef?.itemCategoryHashes?.includes(ItemCategoryHashes.Shaders) &&
+    !DEFAULT_ORNAMENTS.includes(plugDef.hash) &&
+    socketCanAcceptShader(socket, defs)
+  ) {
     return 'shaders';
   }
 }
 
 export type SocketKind = NonNullable<ReturnType<typeof identifySocket>>;
-
-function getSocketCompatibilitySignature(socket: DimSocket, defs: D2ManifestDefinitions) {
-  const plugHashes = new Set<number>();
-
-  if (socket.emptyPlugItemHash) {
-    plugHashes.add(socket.emptyPlugItemHash);
-  }
-
-  for (const plugItem of socket.reusablePlugItems ?? []) {
-    plugHashes.add(plugItem.plugItemHash);
-  }
-
-  for (const dimPlug of socket.plugSet?.plugs ?? []) {
-    plugHashes.add(dimPlug.plugDef.hash);
-  }
-
-  const randomizedPlugSetHash = socket.socketDefinition.randomizedPlugSetHash;
-  if (randomizedPlugSetHash) {
-    for (const plugItem of defs.PlugSet.get(randomizedPlugSetHash)?.reusablePlugItems ?? []) {
-      plugHashes.add(plugItem.plugItemHash);
-    }
-  }
-
-  const reusablePlugSetHash = socket.socketDefinition.reusablePlugSetHash;
-  if (reusablePlugSetHash) {
-    for (const plugItem of defs.PlugSet.get(reusablePlugSetHash)?.reusablePlugItems ?? []) {
-      plugHashes.add(plugItem.plugItemHash);
-    }
-  }
-
-  return Array.from(plugHashes)
-    .sort((a, b) => a - b)
-    .join(',');
-}
 
 export function collectSocketsToSet(
   filteredItems: DimItem[],
@@ -91,15 +68,14 @@ export function collectSocketsToSet(
     }
 
     for (const socket of item.sockets?.allSockets ?? []) {
-      const kind = identifySocket(socket);
-      const compatibilitySignature = kind && getSocketCompatibilitySignature(socket, defs);
+      const kind = identifySocket(socket, defs);
+      const groupKey = kind;
       if (
         kind &&
-        compatibilitySignature &&
+        groupKey &&
         socket.plugged &&
         canInsertPlug(socket, socket.plugged.plugDef.hash, destiny2CoreSettings, defs)
       ) {
-        const groupKey = `${kind}:${compatibilitySignature}`;
         (socketsByKind[groupKey] ??= { kind, entries: [] }).entries.push({ item, socket });
       }
     }

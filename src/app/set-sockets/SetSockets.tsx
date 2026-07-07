@@ -13,6 +13,7 @@ import { AppIcon, refreshIcon } from 'app/shell/icons';
 import { useThunkDispatch } from 'app/store/thunk-dispatch';
 import { withCancel } from 'app/utils/cancel';
 import clsx from 'clsx';
+import { ItemCategoryHashes } from 'data/d2/generated-enums';
 import chestArmorItem from 'destiny-icons/armor_types/chest.svg';
 import ghostIcon from 'destiny-icons/general/ghost.svg';
 import handCannonIcon from 'destiny-icons/weapons/hand_cannon.svg';
@@ -280,6 +281,10 @@ export default function SetSockets() {
           socket={socketKindInMenu.representativeSocket}
           allowInsertPlug={false}
           actionLabel={t('SetSockets.Apply')}
+          title={socketKindInMenu.kind === 'shaders' ? t('SetSockets.Action') : undefined}
+          plugItemCategoryHashWhitelist={
+            socketKindInMenu.kind === 'shaders' ? [ItemCategoryHashes.Shaders] : undefined
+          }
           onClose={() => setSocketKindInMenu(undefined)}
           onPlugSelected={({ plugHash }) => {
             const plugItemDef = defs.InventoryItem.get(

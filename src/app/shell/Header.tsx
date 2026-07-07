@@ -1,6 +1,6 @@
 import MenuAccounts from 'app/accounts/MenuAccounts';
 import { currentAccountSelector } from 'app/accounts/selectors';
-import { PressTipRoot } from 'app/dim-ui/PressTip';
+import { PressTipRootContext } from 'app/dim-ui/PressTip';
 import Sheet from 'app/dim-ui/Sheet';
 import { showCheatSheet$ } from 'app/hotkeys/HotkeysCheatSheet';
 import { Hotkey } from 'app/hotkeys/hotkeys';
@@ -287,7 +287,7 @@ export default function Header() {
     : false;
 
   return (
-    <PressTipRoot value={headerRef}>
+    <PressTipRootContext value={headerRef}>
       <header className={styles.container} ref={headerRef}>
         <div className={styles.header}>
           <button
@@ -397,6 +397,6 @@ export default function Header() {
           </Sheet>
         )}
       </header>
-    </PressTipRoot>
+    </PressTipRootContext>
   );
 }
