@@ -179,10 +179,7 @@ export default function SocketDetailsSelectedPlug({
 
   const kind = uiCategorizeSocket(defs, socket.socketDefinition);
   const insertName =
-    actionLabel ??
-    (canDoAWA
-      ? t(`Sockets.Insert.${kind}`, { metadata: { keys: 'sockets' } })
-      : t(`Sockets.Select.${kind}`, { metadata: { keys: 'sockets' } }));
+    actionLabel ?? (canDoAWA ? t(`Sockets.Insert.${kind}`) : t(`Sockets.Select.${kind}`));
 
   const [insertInProgress, setInsertInProgress] = useState(false);
 

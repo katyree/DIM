@@ -1,5 +1,35 @@
 ## Next
 
+## 8.134.0 <span class="changelog-date">(2026-07-19)</span>
+
+* Reject Bungie OAuth callbacks whose state parameter is missing when no state was stored, closing a login CSRF where an attacker-supplied code could be exchanged.
+* The Loadout Optimizer is up to 2x faster when activity mods are locked.
+* Loadout Optimizer no longer waits for vendors to load.
+* Link to the user guide for why Loadout Optimizer / Loadout Analyzer can be slow from the Loadouts and LO pages.
+* Added missing `is:inloadout` filter suggestion.
+
+## 8.133.0 <span class="changelog-date">(2026-07-12)</span>
+
+* Fixed saved loadouts placing tuning mods on the wrong armor piece when applying or previewing them. You must re-save the loadout via optimizer one time.
+* Exotic armor ornaments are correctly shown as unlocked in Fashion and are no longer skipped when applying loadouts.
+* The Loadout Optimizer is dramatically faster, especially "show all sets" searches.
+* The Loadout Optimizer now applies tuning mods to Tier 5 exotics even when no exotic is pinned.
+* The Loadout Optimizer now waits for vendor items to finish loading before starting its search, instead of starting a search and immediately restarting it.
+* Fixed the Loadout Optimizer wrongly rejecting some sets with locked general mods when no stat constraints were set.
+* Tiered Adept weapons now show correct stats.
+* Fixed stats for max-enhanced adept weapons below weapon level 20.
+* Vendor data now reloads when the app refreshes.
+
+## 8.132.0 <span class="changelog-date">(2026-07-05)</span>
+
+* Fixed a bug that prevented saving searches on the loadouts page
+* Improved Loadout Optimizer speed.
+* Actually show all items for sale in Eververse after Monument of Triumph release.
+* Only render community perk description links that are http(s) URLs
+* Loadout Optimizer now considers tuning mods on exotic armor when you select a specific exotic or Any Exotic.
+
+## 8.131.0 <span class="changelog-date">(2026-06-28)</span>
+
 * Chinese and Spanish language variants now fall back to their sibling variant before English for any untranslated text.
 
 ## 8.130.0 <span class="changelog-date">(2026-06-21)</span>

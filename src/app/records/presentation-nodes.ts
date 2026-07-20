@@ -4,7 +4,7 @@ import { DimItem } from 'app/inventory/item-types';
 import { ItemCreationContext, makeFakeItem } from 'app/inventory/store/d2-item-factory';
 import { ItemFilter } from 'app/search/filter-types';
 import { compact, count, filterMap } from 'app/utils/collections';
-import extraItemCollectibles from 'data/d2/unreferenced-collections-items.json';
+import extraItemCollectibles from 'data/d2/unreferenced-collections-items.json' with { type: 'json' };
 
 import { DimTitle } from 'app/inventory/store-types';
 import { getTitleInfo } from 'app/inventory/store/d2-store-factory';
@@ -304,6 +304,27 @@ export function hideCompletedRecords(node: DimPresentationNode): DimPresentation
       records: node.records.filter(
         (r) => !(r.recordComponent.state & DestinyRecordState.RecordRedeemed),
       ),
+    };
+  }
+
+  return node;
+}
+
+/** Filter the node tree down to only collectibles that haven't been acquired yet. */
+export function hideAcquiredCollectibles(node: DimPresentationNode): DimPresentationNode {
+  if (node.childPresentationNodes) {
+    return {
+      ...node,
+      childPresentationNodes: filterMap(node.childPresentationNodes, (node) =>
+        dropEmptyNodes(hideAcquiredCollectibles(node)),
+      ),
+    };
+  }
+
+  if (node.collectibles) {
+    return {
+      ...node,
+      collectibles: node.collectibles.filter((c) => c.state & DestinyCollectibleState.NotAcquired),
     };
   }
 

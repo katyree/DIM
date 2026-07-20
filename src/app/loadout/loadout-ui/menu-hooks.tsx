@@ -1,5 +1,6 @@
 import { LoadoutSort } from '@destinyitemmanager/dim-api-types';
 import { bungieBackgroundStyleAdvanced } from 'app/dim-ui/BungieImage';
+import ExternalLink from 'app/dim-ui/ExternalLink';
 import FilterPills, { Option } from 'app/dim-ui/FilterPills';
 import ColorDestinySymbols from 'app/dim-ui/destiny-symbols/ColorDestinySymbols';
 import { DimLanguage } from 'app/i18n';
@@ -16,6 +17,7 @@ import { DEFAULT_ORNAMENTS } from 'app/search/d2-known-values';
 import { ItemFilter } from 'app/search/filter-types';
 import { faCheckCircle, refreshIcon } from 'app/shell/icons';
 import AppIcon from 'app/shell/icons/AppIcon';
+import { userGuideUrl } from 'app/shell/links';
 import { isEmpty } from 'app/utils/collections';
 import { compareBy } from 'app/utils/comparators';
 import { emptyArray } from 'app/utils/empty';
@@ -74,18 +76,16 @@ export function useLoadoutFilterPills(
   const loadoutsByHashtag = useMemo(() => groupLoadoutsByHashtag(savedLoadouts), [savedLoadouts]);
 
   const filterOptions = Object.entries(loadoutsByHashtag)
-    .map(
-      ([hashtag, loadouts]): Option<FilterPillType> => ({
-        key: hashtag,
-        value: { tag: 'hashtag', hashtag },
-        content: (
-          <>
-            <ColorDestinySymbols text={hashtag} />
-            {` (${loadouts.length})`}
-          </>
-        ),
-      }),
-    )
+    .map(([hashtag, loadouts]): Option<FilterPillType> => ({
+      key: hashtag,
+      value: { tag: 'hashtag', hashtag },
+      content: (
+        <>
+          <ColorDestinySymbols text={hashtag} />
+          {` (${loadouts.length})`}
+        </>
+      ),
+    }))
     .sort(compareBy((o) => o.key));
 
   const loadoutsByType = useMemo(() => {
@@ -259,6 +259,10 @@ function AnalysisProgress({
           {t('LoadoutAnalysis.Analyzed', { numLoadouts })}
         </>
       )}
+      {' - '}
+      <ExternalLink href={userGuideUrl('Why-Loadout-Optimizer-is-slow-or-uses-a-lot-of-CPU')}>
+        {t('LoadoutBuilder.WhySlow')}
+      </ExternalLink>
     </div>
   );
 }
