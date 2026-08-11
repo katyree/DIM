@@ -7,7 +7,7 @@ import React, { HTMLProps, memo, use, useCallback, useEffect, useRef, useState }
 import { createPortal } from 'react-dom';
 import { useSelector } from 'react-redux';
 import ClickOutside from '../ClickOutside';
-import { PressTipRoot } from '../PressTip';
+import { PressTipRootContext } from '../PressTip';
 import { usePopper } from '../usePopper';
 import ColorDestinySymbols from './ColorDestinySymbols';
 import * as styles from './SymbolsPicker.m.scss';
@@ -106,7 +106,7 @@ function SymbolsPickerButton<T extends HTMLTextAreaElement | HTMLInputElement>({
   const controlRef = useRef<HTMLButtonElement>(null);
   const tooltipContents = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
-  const pressTipRoot = use(PressTipRoot);
+  const pressTipRoot = use(PressTipRootContext);
 
   usePopper(
     {

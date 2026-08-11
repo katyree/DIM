@@ -22,6 +22,7 @@ import { getCurrentStore } from 'app/inventory/stores-helpers';
 import ItemFeedPage from 'app/item-feed/ItemFeedPage';
 import LoadoutDrawerContainer from 'app/loadout-drawer/LoadoutDrawerContainer';
 import { totalPostmasterItems } from 'app/loadout-drawer/postmaster';
+import SetSockets from 'app/set-sockets/SetSockets';
 import { useThunkDispatch } from 'app/store/thunk-dispatch';
 import { RootState } from 'app/store/types';
 import StripSockets from 'app/strip-sockets/StripSockets';
@@ -329,6 +330,7 @@ export default function Destiny() {
         </div>
         <LoadoutDrawerContainer account={account} />
         <CompareContainer destinyVersion={account.destinyVersion} />
+        {account.destinyVersion === 2 && <SetSockets />}
         {account.destinyVersion === 2 && <StripSockets />}
         <Farming />
         <InfusionFinder />

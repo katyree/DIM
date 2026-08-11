@@ -14,13 +14,18 @@ import { useD2Definitions } from 'app/manifest/selectors';
 import { unlockedItemsForCharacterOrProfilePlugSet } from 'app/records/plugset-helpers';
 import { collectionsVisibleShadersSelector } from 'app/records/selectors';
 import { SearchInput } from 'app/search/SearchInput';
-import { weaponMasterworkY2SocketTypeHash } from 'app/search/d2-known-values';
+import { DEFAULT_ORNAMENTS, weaponMasterworkY2SocketTypeHash } from 'app/search/d2-known-values';
 import { createPlugSearchPredicate } from 'app/search/plug-search';
 import { chainComparator, compareBy, reverseComparator } from 'app/utils/comparators';
 import { emptySet } from 'app/utils/empty';
 import { DestinyProfileResponse, PlugUiStyles, SocketPlugSources } from 'bungie-api-ts/destiny2';
 import clsx from 'clsx';
-import { BucketHashes, PlugCategoryHashes, SocketCategoryHashes } from 'data/d2/generated-enums';
+import {
+  BucketHashes,
+  ItemCategoryHashes,
+  PlugCategoryHashes,
+  SocketCategoryHashes,
+} from 'data/d2/generated-enums';
 import { memo, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import '../inventory-page/StoreBucket.scss';
@@ -123,6 +128,9 @@ export default function SocketDetails({
   allowInsertPlug,
   onClose,
   onPlugSelected,
+  actionLabel,
+  title,
+  plugItemCategoryHashWhitelist,
 }: {
   item: DimItem;
   socket: DimSocket;
@@ -130,12 +138,21 @@ export default function SocketDetails({
   allowInsertPlug: boolean;
   onClose: () => void;
   onPlugSelected?: (value: { item: DimItem; socket: DimSocket; plugHash: number }) => void;
+  actionLabel?: string;
+  title?: string;
+  plugItemCategoryHashWhitelist?: readonly ItemCategoryHashes[];
 }) {
   const defs = useD2Definitions()!;
   const plugged = socket.plugged?.plugDef;
   const actuallyPlugged = (socket.actuallyPlugged || socket.plugged)?.plugDef;
+  const shouldShowPlug = (plug: PluggableInventoryItemDefinition) =>
+    !DEFAULT_ORNAMENTS.includes(plug.hash) &&
+    (!plugItemCategoryHashWhitelist ||
+      plug.itemCategoryHashes?.some((categoryHash) =>
+        plugItemCategoryHashWhitelist.includes(categoryHash),
+      ));
   const [selectedPlug, setSelectedPlug] = useState<PluggableInventoryItemDefinition | null>(
-    plugged || null,
+    plugged && shouldShowPlug(plugged) ? plugged : null,
   );
   const [query, setQuery] = useState('');
   const language = useSelector(languageSelector);
@@ -203,7 +220,7 @@ export default function SocketDetails({
 
   const searchFilter = createPlugSearchPredicate(query, language, defs);
 
-  let mods = hashesToPluggableItems(defs, Array.from(modHashes));
+  let mods = hashesToPluggableItems(defs, Array.from(modHashes)).filter(shouldShowPlug);
 
   if (socket.socketDefinition.socketTypeHash === weaponMasterworkY2SocketTypeHash) {
     const matchesMasterwork = (plugOption: PluggableInventoryItemDefinition) => {
@@ -267,7 +284,7 @@ export default function SocketDetails({
     );
   }
 
-  if (plugged) {
+  if (plugged && shouldShowPlug(plugged)) {
     mods = mods.filter((m) => m.hash !== plugged.hash);
     mods.unshift(plugged);
   }
@@ -287,7 +304,7 @@ export default function SocketDetails({
           />
         )}
         {requiresEnergy && <EnergyCostIcon className={styles.energyElement} />}
-        <div>{socketCategory.displayProperties.name}</div>
+        <div>{title ?? socketCategory.displayProperties.name}</div>
       </h1>
       <SearchInput
         query={query}
@@ -311,6 +328,7 @@ export default function SocketDetails({
         allowInsertPlug={allowInsertPlug}
         onPlugSelected={onPlugSelected}
         closeMenu={onClose}
+        actionLabel={actionLabel}
       />
     ));
 

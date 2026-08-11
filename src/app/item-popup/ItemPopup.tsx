@@ -1,6 +1,6 @@
 import { AlertIcon } from 'app/dim-ui/AlertIcon';
 import ClickOutside from 'app/dim-ui/ClickOutside';
-import { PressTipRoot } from 'app/dim-ui/PressTip';
+import { PressTipRootContext } from 'app/dim-ui/PressTip';
 import Sheet from 'app/dim-ui/Sheet';
 import RichDestinyText from 'app/dim-ui/destiny-symbols/RichDestinyText';
 import { usePopper } from 'app/dim-ui/usePopper';
@@ -152,7 +152,7 @@ export default function ItemPopup({
         aria-modal="false"
       >
         <ClickOutside onClickOutside={onClose}>
-          <PressTipRoot value={popupRef}>
+          <PressTipRootContext value={popupRef}>
             <ItemTagHotkeys item={item} />
             <div className={styles.desktopPopup}>
               <div className={clsx(styles.desktopPopupBody, styles.popupBackground)}>
@@ -168,7 +168,7 @@ export default function ItemPopup({
                 </div>
               )}
             </div>
-          </PressTipRoot>
+          </PressTipRootContext>
         </ClickOutside>
         <div className={clsx('arrow', styles.arrow, rarityClasses[item.rarity])} />
       </div>

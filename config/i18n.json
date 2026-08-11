@@ -1335,6 +1335,19 @@
     "ListStyle": "Display perks as a list",
     "GridStyle": "Display perks as a grid"
   },
+  "SetSockets": {
+    "Action": "Set Shader",
+    "Apply": "Apply to Selected Items",
+    "Choose": "Choose Shader sockets to set",
+    "Running": "Applying Shaders",
+    "Done": "Applied Shaders",
+    "Ok": "Ok",
+    "Cancel": "Cancel",
+    "NoSockets": "No Shader sockets to set",
+    "NoCompatibleTitle": "No compatible items",
+    "NoCompatibleBody": "That shader choice would not change any of the selected items.",
+    "Shaders": "{{count}}x Shader"
+  },
   "Stats": {
     "Custom": "Custom Total",
     "CustomDesc": "Custom total of selected base stats, ignoring mods or masterworks. Visit Settings to configure which stats are included.",

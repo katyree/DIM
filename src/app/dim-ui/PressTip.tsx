@@ -19,8 +19,7 @@ import { usePopper } from './usePopper';
  * but other elements (like Sheet) can use this to override the attachment point
  * for PressTips below them in the tree.
  */
-// eslint-disable-next-line @eslint-react/naming-convention-context-name
-export const PressTipRoot = createContext<RefObject<HTMLElement | null>>({
+export const PressTipRootContext = createContext<RefObject<HTMLElement | null>>({
   current: null,
 });
 
@@ -91,7 +90,7 @@ function Control({
   ...rest
 }: ControlProps) {
   const tooltipContents = useRef<HTMLDivElement>(null);
-  const pressTipRoot = use(PressTipRoot);
+  const pressTipRoot = use(PressTipRootContext);
   const [customization, customizeTooltip] = useState<TooltipCustomization>({ className: null });
 
   usePopper(

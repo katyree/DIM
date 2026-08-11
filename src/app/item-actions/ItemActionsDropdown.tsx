@@ -13,11 +13,13 @@ import { applyLoadout } from 'app/loadout-drawer/loadout-apply';
 import { TagCommandInfo } from 'app/organizer/ItemActions';
 import { validateQuerySelector } from 'app/search/items/item-search-filter';
 import { canonicalizeQuery, parseQuery } from 'app/search/query-parser';
+import { setSockets } from 'app/set-sockets/set-sockets-actions';
 import { toggleSearchResults } from 'app/shell/actions';
 import { useIsPhonePortrait } from 'app/shell/selectors';
 import { useThunkDispatch } from 'app/store/thunk-dispatch';
 import { stripSockets } from 'app/strip-sockets/strip-sockets-actions';
 import { compact } from 'app/utils/collections';
+import { ItemCategoryHashes } from 'data/d2/generated-enums';
 import { memo } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router';
@@ -30,6 +32,7 @@ import {
   faList,
   faWindowClose,
   lockIcon,
+  plusIcon,
   starIcon,
   starOutlineIcon,
   stickyNoteIcon,
@@ -68,6 +71,11 @@ export default memo(function ItemActionsDropdown({
   const canStrip = filteredItems.some((i) =>
     i.sockets?.allSockets.some(
       (s) => s.emptyPlugItemHash && s.plugged?.plugDef.hash !== s.emptyPlugItemHash,
+    ),
+  );
+  const canSetSockets = filteredItems.some((i) =>
+    i.sockets?.allSockets.some((s) =>
+      s.plugged?.plugDef.itemCategoryHashes?.includes(ItemCategoryHashes.Shaders),
     ),
   );
 
@@ -163,6 +171,16 @@ export default memo(function ItemActionsDropdown({
       content: (
         <>
           <AppIcon icon={compareIcon} /> {t('Header.CompareMatching')}
+        </>
+      ),
+    },
+    destinyVersion === 2 && {
+      key: 'set-sockets',
+      onSelected: () => setSockets(searchQuery),
+      disabled: !canSetSockets || !searchActive,
+      content: (
+        <>
+          <AppIcon icon={plusIcon} /> {t('SetSockets.Action')}
         </>
       ),
     },

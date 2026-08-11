@@ -1,0 +1,54 @@
+
+> dim@8.121.0 start C:\CODE\DIM
+> pnpm run --reporter-hide-prefix --stream '/^(watch:i18n|devserver)$/'
+
+. devserver$ nodemon --delay 2 --watch config/webpack.ts --watch config/feature-flags.ts --watch config/content-security-policy.ts --watch pnpm-lock.yaml -e ts,js,json,lock --exec "pnpm install --frozen-lockfile --prefer-offline && rspack serve --config ./config/webpack.ts --env=dev || pnpm touch"
+. watch:i18n$ nodemon --watch config/i18n.json --exec "pnpm i18n"
+[33m[nodemon] 3.1.14[39m
+[33m[nodemon] 3.1.14[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): config\i18n.json[39m
+[33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[32m[nodemon] starting `pnpm i18n`[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): config\webpack.ts config\feature-flags.ts config\content-security-policy.ts pnpm-lock.yaml[39m
+[33m[nodemon] watching extensions: ts,js,json,lock[39m
+[32m[nodemon] starting `pnpm install --frozen-lockfile --prefer-offline && rspack serve --config ./config/webpack.ts --env=dev || pnpm touch`[39m
+> dim@8.121.0 i18n C:\CODE\DIM
+> i18next-scanner --config ./i18next-scanner.config.cjs
+Lockfile is up to date, resolution step is skipped
+Already up to date
+🌐 i18next is maintained with support from Locize — consider powering your project with managed localization (AI, CDN, integrations): https://locize.com 💙
+> dim@8.121.0 install C:\CODE\DIM
+> git submodule update --init --recursive
+> dim@8.121.0 prepare C:\CODE\DIM
+> husky
+Done in 1.5s using pnpm v10.28.2
+[32m[nodemon] clean exit - waiting for changes before restart[39m
+==> Webpack is starting to build DIM...
+<i> [webpack-dev-server] Project is running at:
+<i> [webpack-dev-server] Loopback: [36mhttps://localhost:8080/[39m, [36mhttps://[::1]:8080/[39m
+<i> [webpack-dev-server] Content not from webpack is served from '[36mC:\CODE\DIM\public[39m' directory
+<i> [webpack-dev-server] 404s will fallback to '[36m/index.html[39m'
+==> Webpack finished building DIM in 5119ms
+[36m[type-check] in progress...[39m
+==> Webpack is updating DIM...
+==> Webpack finished updating DIM in 1039ms
+[36m[type-check] in progress...[39m
+[32m[type-check] no errors found in 17471 ms[39m
+==> Webpack is updating DIM...
+==> Webpack finished updating DIM in 1454ms
+[32m[type-check] no errors found in 2158 ms[39m
+==> Webpack is updating DIM...
+==> Webpack finished updating DIM in 1091ms
+[32m[type-check] no errors found in 1876 ms[39m
+==> Webpack is updating DIM...
+==> Webpack finished updating DIM in 1059ms
+[32m[type-check] no errors found in 1849 ms[39m
+==> Webpack is updating DIM...
+==> Webpack finished updating DIM in 1714ms
+[32m[type-check] no errors found in 2607 ms[39m
+==> Webpack is updating DIM...
+<i> [webpack-dev-middleware] wait until bundle finished: /runtime.103686845d1c1435.hot-update.json
+==> Webpack finished updating DIM in 687ms
+[32m[type-check] no errors found in 1555 ms[39m
