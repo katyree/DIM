@@ -13,7 +13,7 @@
     "ErrorLoadInventory": "Unable to load your Destiny {{version}} characters and inventory",
     "ErrorLoadManifest": "Unable to load Destiny info database from Bungie",
     "ErrorLoading": "Unable to load Destiny accounts from Bungie.net",
-    "MissingAccountWarning": "If you don't see your account here, you may not have logged in to the right Bungie.net account, or Bungie.net may be down for maintenance.",
+    "MissingAccountWarning": "If you don't see your account here, you may not have logged in to the right Bungie.net account, or Bungie.net may be down for maintenance. DIM cannot load PS3 or Xbox 360 Destiny 1 accounts.",
     "MissingDescription": "The account you're trying to view is not an account linked to your Bungie.net profile. Select one of your accounts below.",
     "MissingTitle": "Account Not Found",
     "NoCharacters": "You have no Destiny characters associated with this Bungie.net account. Try logging into a different account.",
@@ -50,6 +50,7 @@
   },
   "Bucket": {
     "Armor": "Armor",
+    "Artifact": "Artifact",
     "Class": "Subclass",
     "General": "General",
     "Ghost": "Ghost",
@@ -112,8 +113,7 @@
       "Unmatched": "This item doesn't match the type of items being compared."
     },
     "InitialItem": "This is the item the Compare tool was launched from",
-    "IsVendorItem": "This item is not in your inventory, but {{vendorName}} sells it.",
-    "NoModArmor": "Pre-mods"
+    "IsVendorItem": "This item is not in your inventory, but {{vendorName}} sells it."
   },
   "Cooldown": {
     "Grenade": "Grenade cooldown: {{cooldown}}",
@@ -154,6 +154,7 @@
     "Description": "Try loading your inventory in the Destiny 2 Companion App to see if Bungie.net is down.",
     "ReadTheGuide": "Read our User Guide (linked from the menu) for troubleshooting steps.",
     "SystemDown": "This affects all Destiny apps, and the DIM team cannot fix or bypass it.",
+    "TranslateExtension": "Disable automatic translation as it can break DIM and other apps.",
     "Troubleshooting": "Troubleshooting Guide"
   },
   "FarmingMode": {
@@ -598,8 +599,9 @@
     "RemoveStack": "Remove a copy of this mod",
     "Scaled": "Scaled",
     "SearchAMod": "Search for mod name or description",
-    "SearchASetBonus": "",
+    "SearchASetBonus": "Search for set bonus name, perk name or description",
     "SearchAnExotic": "Search for exotic name or description",
+    "SelectArtifactOptions": "Customize artifact",
     "SelectExotic": "Select exotic",
     "SelectMods": "Select Mods",
     "SelectModsCount": "{{selected}}/{{maxSelectable}}",
@@ -788,8 +790,6 @@
     "ApplyMods": "Applying mods",
     "ApplySearch": "Transfer search \"{{query}}\"",
     "ArmorStats": "Armor Stats",
-    "ArtifactUnlocks": "Artifact Unlocks",
-    "ArtifactUnlocksDesc": "Due to Bungie.net limitations, DIM cannot automatically configure your artifact. You need to perform these unlocks in-game before applying the Loadout.",
     "ArtifactUnlocksWithSeason": "Artifact Unlocks – S{{seasonNumber}}",
     "BadLoadoutShare": "Unable to load shared loadout",
     "BadLoadoutShareBody": "The loadout you're trying to load is invalid: {{error}}",
@@ -955,7 +955,7 @@
     "ShareLoadout": "Share",
     "ShowModPlacement": "Show Mod Placement",
     "Snapshot": "Save As In-Game Loadout",
-    "SocketOverrides": "Changing subclass options",
+    "SocketOverrides": "Changing subclass/artifact options",
     "SortByEditTime": "Sort by last edited",
     "SortByName": "Sort by name",
     "SubclassOptions": "{{subclass}} options",
@@ -1272,6 +1272,7 @@
     "SizeItem": "Item size",
     "SortByAmmoType": "Ammo Type",
     "SortByAmount": "Stack Size",
+    "SortByBreakerType": "Anti-Champion Type",
     "SortByClassType": "Required Class",
     "SortByCrafted": "Crafted (D2)",
     "SortByDeepsight": "Deepsight (D2)",

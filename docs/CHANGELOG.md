@@ -1,5 +1,26 @@
 ## Next
 
+* Hide the combat flair mod socket on non-Tier-5 weapons.
+
+## 8.137.0 <span class="changelog-date">(2026-08-09)</span>
+
+* Added a share button to the loadout edit sheet.
+* Add basic handling for using Artifacts in loadouts
+* Show chronologs under the vault instead of silver.
+* Add error advice to turn off auto translation.
+* Add a warning about PS3/XB360 not happening
+* Perks with more than one option are now shift-clickable in Organizer.
+* Most places that support shift-click (sorting columns in Compare, selecting pills in Loadouts and Bounties) now also support long-press on mobile.
+* Clamp stats in Loadout Optimizer sets so negative stats don't reduce the total.
+* Prevent armory links from overlapping the close button
+* Fixed the Loadout Optimizer returning no builds when a search (like tier:5) matched only exotic armor in multiple slots.
+
+## 8.136.0 <span class="changelog-date">(2026-08-02)</span>
+
+## 8.135.0 <span class="changelog-date">(2026-07-26)</span>
+
+* In Loadout Optimizer, set bonuses are now searchable. They also always show up in a single column instead of side-by-side.
+
 ## 8.134.0 <span class="changelog-date">(2026-07-19)</span>
 
 * Reject Bungie OAuth callbacks whose state parameter is missing when no state was stored, closing a login CSRF where an attacker-supplied code could be exchanged.
